@@ -1,0 +1,23 @@
+# Copyright 2018 Google LLC
+#
+# Use of this source code is governed by an MIT-style
+# license that can be found in the LICENSE file or at
+# https://opensource.org/licenses/MIT.
+
+[package]
+name = "mundane"
+# remember to update html_root_url
+# TODO(joshlf): use version-sync crate to test this in CI
+version = "0.2.0"
+authors = ["Joshua Liebow-Feeser <joshlf@google.com>"]
+description = "Cryptography which is easy to use and hard to misuse"
+readme = "README.md"
+license-file = "LICENSE"
+keywords = ["boringssl"]
+categories = ["cryptography"]
+repository = "https://github.com/google/mundane"
+
+[features]
+insecure = []
+kdf = []
+rand-bytes = []
