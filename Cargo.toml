@@ -15,7 +15,7 @@ readme = "README.md"
 license-file = "LICENSE"
 keywords = ["boringssl"]
 categories = ["cryptography"]
-repository = "https://github.com/google/mundane"
+repository = "https://mundane.googlesource.com/mundane"
 
 [features]
 insecure = []
