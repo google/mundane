@@ -711,7 +711,7 @@ mod tests {
             should_fail(
                 parse_public_key_der::<EcPubKey<C2>>(&key_der),
                 "parse_public_key_der",
-                "mundane: unexpected curve:",
+                "unexpected curve:",
             );
         }
 
