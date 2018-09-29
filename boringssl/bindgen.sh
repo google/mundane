@@ -31,7 +31,7 @@ PATCH="$3"
 # to make will affect us, which they will care about, making them either expend
 # effort in a graceful transition or decide to abandon the change. Thus, instead
 # of whitelisting broad classes of symbols, we explicitly whitelist the exact
-# list of symbols that mundane depends on.
+# list of symbols that Mundane depends on.
 WHITELIST="(CBB|\
 CBB_cleanup|\
 CBB_data|\

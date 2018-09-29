@@ -6,16 +6,16 @@
 # license that can be found in the LICENSE file or at
 # https://opensource.org/licenses/MIT.
 
-# This script tests that a build with multiple versions of the mundane crate in
+# This script tests that a build with multiple versions of the Mundane crate in
 # the same build graph works properly. It performs the following steps:
 # - Create a temporary directory
-# - Create two copies of mundane - mundane-v1, and mundane-v2 - which directly
+# - Create two copies of Mundane - mundane-v1, and mundane-v2 - which directly
 #   expose the boringssl::ffi module so that dependent crates can access the raw
 #   symbols
 # - Create two crates, one depending on mundane-v1, and one on mundane-v2, each
-#   of which exposes all of the BoringSSL symbols from mundane
+#   of which exposes all of the BoringSSL symbols from Mundane
 # - Create a top-level program which depends on both of these crates
-# - Have the top-level program's main call all of the mundane functions from
+# - Have the top-level program's main call all of the Mundane functions from
 #   each of the crates
 # - Produce a release build, which forces linking, to make sure that linking
 #   these two versions of the library at the same time works properly
@@ -35,7 +35,7 @@ cp -LR "$CRATE_ROOT" mundane-v2
 echo "$TMP"
 
 #
-# Make mundane crates
+# Make Mundane crates
 #
 
 # Update the Cargo.toml versions and names in place to be distinct
@@ -53,12 +53,12 @@ sed -i '' -e 's/__RUST_MUNDANE_[0-9]*_[0-9]*_[0-9]*_/__RUST_MUNDANE_2_0_0_/' mun
 # Mark the ffi module as public
 sed  -i '' -e 's/^mod ffi;$/pub mod ffi;/' mundane-v1/src/boringssl/mod.rs
 sed  -i '' -e 's/^mod ffi;$/pub mod ffi;/' mundane-v2/src/boringssl/mod.rs
-# Make mundane directly expose the ffi module
+# Make Mundane directly expose the ffi module
 echo "pub use boringssl::ffi;" >> mundane-v1/src/lib.rs
 echo "pub use boringssl::ffi;" >> mundane-v2/src/lib.rs
 
 #
-# Make crates which depend on mundane
+# Make crates which depend on Mundane
 #
 
 # Usage: make_crate <crate name> <dep name>
@@ -69,7 +69,7 @@ function make_crate {
 
     mkdir "$CRATE_NAME"
     mkdir "${CRATE_NAME}/src"
-    # Re-export all symbols from mundane
+    # Re-export all symbols from Mundane
     cat >> "${CRATE_NAME}/src/lib.rs" <<EOF
 extern crate ${DEP_NAME_RS};
 

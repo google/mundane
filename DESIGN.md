@@ -4,9 +4,9 @@ Use of this source code is governed by an MIT-style
 license that can be found in the LICENSE file or at
 https://opensource.org/licenses/MIT. -->
 
-# Design of the `mundane` crate
+# Design of Mundane
 
-`mundane` has the following design goals, in this order:
+Mundane has the following design goals, in this order:
 - To be difficult to misuse
 - To be ergonomic
 - To be performant
@@ -30,8 +30,8 @@ correctness of a program under normal conditions. But unlike error handling,
 most programmers aren't familiar with the requirements of using cryptography
 securely, and getting it wrong can be absolutely fatal.
 
-Given this realization, `mundane` takes the approach of giving the programmer
-the fewest degrees of freedom possible. Doing the right thing should be easy and
+Given this realization, Mundane takes the approach of giving the programmer the
+fewest degrees of freedom possible. Doing the right thing should be easy and
 feel natural. Doing the wrong thing should feel difficult and ideally be
 entirely impossible. This philosophy motivates the design patterns which are
 explored in the next section.
@@ -177,8 +177,8 @@ the following design guidelines:
 
 ## Attributes
 
-Rust has two attributes which will cause compiler warnings in user code
-if elements of the `mundane` API are misused.
+Rust has two attributes which will cause compiler warnings in user code if
+elements of the Mundane API are misused.
 - The `#[must_use]` attribute on a function causes a compiler warning if a user
   calls the function and discards the result. We put this attribute on all
   functions which return values, as it is always suspicious to call a

@@ -8,7 +8,7 @@
 // suppress the unused warning when those features aren't enabled.
 #![allow(unused)]
 // Only necessary for test_symbol_conflict.sh, which exposes these symbols
-// through mundane's public interface.
+// through Mundane's public interface.
 #![allow(missing_docs)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]

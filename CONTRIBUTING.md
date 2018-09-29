@@ -30,8 +30,8 @@ failing to properly act on the result of cryptographic operations. A
 
 `#[must_use]` may also be used on types, but should be evaluated on a
 case-by-case basis. A few things to keep in mind:
-- All functions defined in `mundane` which return values have `#[must_use]` on
-  them, so the case of a type returned by a function defined in `mundane` is
+- All functions defined in Mundane which return values have `#[must_use]` on
+  them, so the case of a type returned by a function defined in Mundane is
   already covered.
 - Unlike on functions, `#[must_use]` on types affects code other than the
   immediate caller since code outside of this crate may return types which are
@@ -90,7 +90,7 @@ placed on items including modules, types, functions, methods, and traits. If a
 deprecated item is imported or used, it will cause a compiler warning (two,
 actually - one for the import, and one for the use in code).
 
-In `mundane`, all insecure operations must be marked with a `#[deprecated]`
+In Mundane, all insecure operations must be marked with a `#[deprecated]`
 attribute with an appropriate message. This includes all items that a user could
 ever interact with - types, functions, methods, etc. If it has a `pub` in front
 of it, it needs a deprecation attribute. For example:

@@ -11,14 +11,14 @@ This directory contains source code and Rust bindings for Google's
 
 ## Versions
 
-BoringSSL is vendored here, so each version of `mundane` will depend on a
+BoringSSL is vendored here, so each version of Mundane will depend on a
 particular version of BoringSSL. Each new release will usually vendor the latest
 version of BoringSSL in order to pick up bug fixes and improvements.
 
 ## Bindings
 
 Rust bindings live in `boringssl.rs`. This file is included from the main
-`mundane` source code using a `#[path]` attribute.
+Mundane source code using a `#[path]` attribute.
 
 These bindings are auto-generated using the `bindgen.sh` script, although some
 manual intervention is required. In particular, after running `bindgen.sh`, each

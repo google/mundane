@@ -4,16 +4,16 @@ Use of this source code is governed by an MIT-style
 license that can be found in the LICENSE file or at
 https://opensource.org/licenses/MIT. -->
 
-# mundane
+# Mundane
 
-`mundane` is a Rust cryptography library backed by BoringSSL that is difficult
+Mundane is a Rust cryptography library backed by BoringSSL that is difficult
 to misuse, ergonomic, and performant (in that order).
 
 ## Dependencies
 
-`mundane` vendors a copy of the BoringSSL source, so BoringSSL does not need to
-be installed locally in order to build. However, the BoringSSL build system has
-the following dependencies:
+Mundane vendors a copy of the BoringSSL source, so BoringSSL does not need to be
+installed locally in order to build. However, the BoringSSL build system has the
+following dependencies:
 - [CMake](https://cmake.org/download/) 2.8.11 or later
 - Perl 5.6.1 or later. See [BoringSSL's build
   instructions](https://boringssl.googlesource.com/boringssl/+/master/BUILDING.md)
@@ -29,14 +29,14 @@ the following dependencies:
 In order to avoid errors at link time due to conflicting symbols, we build
 BoringSSL with a custom prefix for all of its symbols which is based on the name
 and version of this crate. That way, even if multiple different versions of
-`mundane` are present in the same dependency graph, none of the symbols from one
+Mundane are present in the same dependency graph, none of the symbols from one
 version's BoringSSL will conflict with the symbols from another version's
 BoringSSL.
 
 ## Supported platforms
 
-`mundane` supports being built on and for Linux and Mac. Windows support is
-under development. Cross-compilation is not supported.
+Mundane supports being built on and for Linux and Mac. Windows support is under
+development. Cross-compilation is not supported.
 
 ## License
 
@@ -45,4 +45,4 @@ MIT license which can be found in the `LICENSE` file. Everything in the
 `boringssl/boringssl` directory is licensed with a license that can be found in
 the `boringssl/boringssl/LICENSE` file.
 
-Disclaimer: mundane is not an officially supported Google product.
+Disclaimer: Mundane is not an officially supported Google product.

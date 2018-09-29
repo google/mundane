@@ -6,15 +6,15 @@
 
 //! Cryptography in Rust.
 //!
-//! `mundane` is a Rust cryptography library backed by BoringSSL that is
-//! difficult to misuse, ergonomic, and performant (in that order).
+//! Mundane is a Rust cryptography library backed by BoringSSL that is difficult
+//! to misuse, ergonomic, and performant (in that order).
 //!
 //! # Features
 //!
-//! By default, `mundane` provides only high-level cryptographic primitives.
+//! By default, Mundane provides only high-level cryptographic primitives.
 //! Unless you are implementing cryptographic protocols, these high-level
 //! primitives should be all you need. However, if you are sure that you need
-//! something lower level, `mundane` provides features to enable a number of
+//! something lower level, Mundane provides features to enable a number of
 //! different low level primitives.
 //!
 //! WARNING: Being low level, these primitives provide the programmer with more
@@ -33,12 +33,12 @@
 //!
 //! # Insecure Operations
 //!
-//! `mundane` supports one additional feature not listed in the previous
-//! section: `insecure`. This enables some cryptographic primitives which are
-//! today considered insecure. These should only be used for compatibility with
-//! legacy systems, but never in new systems! When the `insecure` feature is
-//! used, an `insecure` module is added to the crate root. All insecure
-//! primitives are exposed through this module.
+//! Mundane supports one additional feature not listed in the previous section:
+//! `insecure`. This enables some cryptographic primitives which are today
+//! considered insecure. These should only be used for compatibility with legacy
+//! systems, but never in new systems! When the `insecure` feature is used, an
+//! `insecure` module is added to the crate root. All insecure primitives are
+//! exposed through this module.
 
 #![doc(html_root_url = "https://docs.rs/mundane/0.2.0")]
 #![deny(missing_docs)]
