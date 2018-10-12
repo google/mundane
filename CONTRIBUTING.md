@@ -183,9 +183,43 @@ again.
 ## Code reviews
 
 All submissions, including submissions by project members, require review. We
-use GitHub pull requests for this purpose. Consult
-[GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
-information on using pull requests.
+use [Gerrit](https://fuchsia-review.googlesource.com/admin/repos/mundane) for
+this purpose.
+
+### Setup
+If you have not done so on this machine, you will need to set up a password for
+Gerrit. Sign in with a Google account, visit [this
+link](https://fuchsia.googlesource.com/), and click the "Generate Password" link
+in the top right. You will also need to prepare your checkout to [add
+Change-Ids](https://gerrit-review.googlesource.com/Documentation/cmd-hook-commit-msg.html)
+on commit. Run:
+
+```
+curl -Lo .git/hooks/commit-msg https://fuchsia-review.googlesource.com/tools/hooks/commit-msg
+chmod u+x .git/hooks/commit-msg
+```
+
+### Uploading changes
+To upload a change, push it to the special `refs/for/master` target:
+
+```
+git push origin HEAD:refs/for/master
+```
+
+Alternatively, to configure the repository so that all pushes go to this target:
+
+```
+git config remote.origin.push HEAD:refs/for/master
+```
+
+The output will then give you a link to the change. Add `joshlf@google.com` as a
+reviewer.
+
+Pushing a commit with the same Change-Id as an existing change will upload a new
+version of it. (Use the `git rebase` or `git commit --amend` commands.)
+
+For more detailed instructions, see the [Gerrit User
+Guide](https://gerrit-review.googlesource.com/Documentation/intro-user.html).
 
 ## Community Guidelines
 

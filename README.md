@@ -9,6 +9,13 @@ https://opensource.org/licenses/MIT. -->
 Mundane is a Rust cryptography library backed by BoringSSL that is difficult
 to misuse, ergonomic, and performant (in that order).
 
+## Issues and Contributions
+
+We use [GitHub issues](https://github.com/google/mundane/issues) for issue
+tracking, and
+[Gerrit](https://fuchsia-review.googlesource.com/admin/repos/mundane) for code
+reviews. See `CONTRIBUTING.md` for more details.
+
 ## Dependencies
 
 Mundane vendors a copy of the BoringSSL source, so BoringSSL does not need to be
