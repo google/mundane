@@ -206,14 +206,15 @@ To upload a change, push it to the special `refs/for/master` target:
 git push origin HEAD:refs/for/master
 ```
 
-Alternatively, to configure the repository so that all pushes go to this target:
+Alternatively, to configure the repository so that all pushes go to this target
+(`git push` on its becomes equivalent to the above):
 
 ```
 git config remote.origin.push HEAD:refs/for/master
 ```
 
-The output will then give you a link to the change. Add `joshlf@google.com` as a
-reviewer.
+The output of `git push` will then give you a link to the change. Add
+`joshlf@google.com` as a reviewer.
 
 Pushing a commit with the same Change-Id as an existing change will upload a new
 version of it. (Use the `git rebase` or `git commit --amend` commands.)
