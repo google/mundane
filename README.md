@@ -28,7 +28,7 @@ following dependencies:
 - Either Make or [Ninja](https://ninja-build.org/). Ninja is preferable, as it
   makes compilation significantly faster; if both are present, Ninja will be
   used. On Windows, Ninja is required.
-- A C compiler
+- A C++ compiler
 - Go 1.11 or later
 - To build the x86 and x86_64 assembly, your assembler must support AVX2
   instructions and `MOVBE`. If using GNU binutils, you must have 2.22 or later.

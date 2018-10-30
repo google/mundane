@@ -6,6 +6,12 @@ https://opensource.org/licenses/MIT. -->
 
 # Contributing
 
+## Cloning
+
+Mundane depends on BoringSSL, which is in a Git submodule. When cloning this
+repository, make sure to pass the `--recursive` flag to Git to also download
+this submodule.
+
 ## Code Guidelines
 
 ### Unsafe
