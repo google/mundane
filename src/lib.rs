@@ -43,8 +43,6 @@
 #![doc(html_root_url = "https://docs.rs/mundane/0.2.0")]
 #![deny(missing_docs)]
 #![deny(warnings)]
-#![feature(tool_lints)]
-#![allow(stable_features)]
 // just in case we forget to add #[forbid(unsafe_code)] on new module
 // definitions
 #![deny(unsafe_code)]

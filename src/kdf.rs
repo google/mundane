@@ -39,7 +39,6 @@ use hash::Hasher;
 ///
 /// [RFC 2898 Section 5.2]: https://tools.ietf.org/html/rfc2898#section-5.2
 /// [RFC 2898 Appendix B.1]: https://tools.ietf.org/html/rfc2898#appendix-B.1
-#[must_use]
 pub fn pbkdf2<H: Hasher>(password: &[u8], salt: &[u8], iters: NonZeroU32, out_key: &mut [u8]) {
     // PKCS5_PBKDF2_HMAC can only fail on OOM or if iters is 0.
     boringssl::pkcs5_pbkdf2_hmac(password, salt, iters.get(), &H::evp_md(), out_key).unwrap();
@@ -81,7 +80,6 @@ pub(crate) mod insecure_pbkdf2_hmac_sha1 {
     ///
     /// [RFC 2898 Section 5.2]: https://tools.ietf.org/html/rfc2898#section-5.2
     /// [RFC 2898 Appendix B.1]: https://tools.ietf.org/html/rfc2898#appendix-B.1
-    #[must_use]
     #[deprecated(note = "PBKDF2-HMAC-SHA1 is considered insecure")]
     pub fn insecure_pbkdf2_hmac_sha1(
         password: &[u8], salt: &[u8], iters: NonZeroU32, out_key: &mut [u8],

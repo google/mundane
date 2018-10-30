@@ -218,7 +218,9 @@ impl CHeapWrapper<EC_KEY> {
 
     /// The `EC_KEY_get0_group` function.
     #[must_use]
-    #[allow(clippy::needless_lifetimes)] // to be more explicit
+    // TODO(joshlf): Replace with #[allow(clippy::needless_lifetimes)] once the
+    // tool_lints feature is stable
+    #[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_lifetimes))] // to be more explicit
     pub fn ec_key_get0_group<'a>(&'a self) -> Result<CRef<'a, EC_GROUP>, BoringError> {
         // get0 doesn't increment the refcount; the lifetimes ensure that the
         // returned CRef can't outlive self
@@ -354,7 +356,6 @@ impl CHeapWrapper<EVP_PKEY> {
     }
 
     /// The `EVP_PKEY_assign_EC_KEY` function.
-    #[must_use]
     pub fn evp_pkey_assign_ec_key(&mut self, ec_key: CHeapWrapper<EC_KEY>) {
         unsafe {
             // NOTE: It's very important that we use 'into_mut' here so that
@@ -494,7 +495,6 @@ impl CStackWrapper<HMAC_CTX> {
     }
 
     /// The `HMAC_Update` function.
-    #[must_use]
     pub fn hmac_update(&mut self, data: &[u8]) {
         unsafe { HMAC_Update(self.as_mut(), data.as_ptr(), data.len()) }
     }
@@ -508,7 +508,6 @@ impl CStackWrapper<HMAC_CTX> {
     ///
     /// `hmac_final` panics if `out` is not exactly the right length (as defined
     /// by `HMAC_size`).
-    #[must_use]
     pub fn hmac_final(&mut self, out: &mut [u8]) {
         unsafe {
             let size = HMAC_size(self.as_const());
@@ -732,7 +731,7 @@ mod tests {
 
     #[test]
     fn test_boring_error() {
-        CStackWrapper::cbs_with_temp_buffer(&[], |cbs| {
+        let _ = CStackWrapper::cbs_with_temp_buffer(&[], |cbs| {
             should_fail(
                 CHeapWrapper::evp_parse_public_key(cbs),
                 "boringssl::EVP_parse_public_key",
