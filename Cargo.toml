@@ -17,6 +17,15 @@ keywords = ["boringssl"]
 categories = ["cryptography"]
 repository = "https://mundane.googlesource.com/mundane"
 
+# Exclude these test files in order to get under the minimum crates.io crate
+# file size.
+exclude = [
+    "boringssl/boringssl/fuzz/*",
+    "boringssl/boringssl/third_party/wycheproof_testvectors/*",
+    "boringssl/boringssl/crypto/fipsmodule/*/*_tests.txt",
+    "boringssl/boringssl/crypto/cipher_extra/test/*"
+]
+
 [features]
 insecure = []
 kdf = []
