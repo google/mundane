@@ -316,19 +316,27 @@ extern "C" {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_ED25519_sign"]
     pub fn ED25519_sign(
-        out_sig: *mut u8, message: *const u8, message_len: usize, private_key: *const u8,
+        out_sig: *mut u8,
+        message: *const u8,
+        message_len: usize,
+        private_key: *const u8,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_ED25519_verify"]
     pub fn ED25519_verify(
-        message: *const u8, message_len: usize, signature: *const u8, public_key: *const u8,
+        message: *const u8,
+        message_len: usize,
+        signature: *const u8,
+        public_key: *const u8,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_ED25519_keypair_from_seed"]
     pub fn ED25519_keypair_from_seed(
-        out_public_key: *mut u8, out_private_key: *mut u8, seed: *const u8,
+        out_public_key: *mut u8,
+        out_private_key: *mut u8,
+        seed: *const u8,
     );
 }
 extern "C" {
@@ -374,21 +382,31 @@ extern "C" {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_EC_KEY_marshal_private_key"]
     pub fn EC_KEY_marshal_private_key(
-        cbb: *mut CBB, key: *const EC_KEY, enc_flags: ::std::os::raw::c_uint,
+        cbb: *mut CBB,
+        key: *const EC_KEY,
+        enc_flags: ::std::os::raw::c_uint,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_ECDSA_sign"]
     pub fn ECDSA_sign(
-        type_: ::std::os::raw::c_int, digest: *const u8, digest_len: usize, sig: *mut u8,
-        sig_len: *mut ::std::os::raw::c_uint, key: *const EC_KEY,
+        type_: ::std::os::raw::c_int,
+        digest: *const u8,
+        digest_len: usize,
+        sig: *mut u8,
+        sig_len: *mut ::std::os::raw::c_uint,
+        key: *const EC_KEY,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_ECDSA_verify"]
     pub fn ECDSA_verify(
-        type_: ::std::os::raw::c_int, digest: *const u8, digest_len: usize, sig: *const u8,
-        sig_len: usize, key: *const EC_KEY,
+        type_: ::std::os::raw::c_int,
+        digest: *const u8,
+        digest_len: usize,
+        sig: *const u8,
+        sig_len: usize,
+        key: *const EC_KEY,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
@@ -405,7 +423,8 @@ pub type ERR_print_errors_callback_t = ::std::option::Option<
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_ERR_print_errors_cb"]
     pub fn ERR_print_errors_cb(
-        callback: ERR_print_errors_callback_t, ctx: *mut ::std::os::raw::c_void,
+        callback: ERR_print_errors_callback_t,
+        ctx: *mut ::std::os::raw::c_void,
     );
 }
 pub type CRYPTO_refcount_t = u32;
@@ -522,16 +541,29 @@ extern "C" {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_PKCS5_PBKDF2_HMAC"]
     pub fn PKCS5_PBKDF2_HMAC(
-        password: *const ::std::os::raw::c_char, password_len: usize, salt: *const u8,
-        salt_len: usize, iterations: ::std::os::raw::c_uint, digest: *const EVP_MD, key_len: usize,
+        password: *const ::std::os::raw::c_char,
+        password_len: usize,
+        salt: *const u8,
+        salt_len: usize,
+        iterations: ::std::os::raw::c_uint,
+        digest: *const EVP_MD,
+        key_len: usize,
         out_key: *mut u8,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_EVP_PBE_scrypt"]
     pub fn EVP_PBE_scrypt(
-        password: *const ::std::os::raw::c_char, password_len: usize, salt: *const u8,
-        salt_len: usize, N: u64, r: u64, p: u64, max_mem: usize, out_key: *mut u8, key_len: usize,
+        password: *const ::std::os::raw::c_char,
+        password_len: usize,
+        salt: *const u8,
+        salt_len: usize,
+        N: u64,
+        r: u64,
+        p: u64,
+        max_mem: usize,
+        out_key: *mut u8,
+        key_len: usize,
     ) -> ::std::os::raw::c_int;
 }
 #[repr(C)]
@@ -679,20 +711,27 @@ extern "C" {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_HMAC_Init_ex"]
     pub fn HMAC_Init_ex(
-        ctx: *mut HMAC_CTX, key: *const ::std::os::raw::c_void, key_len: usize, md: *const EVP_MD,
+        ctx: *mut HMAC_CTX,
+        key: *const ::std::os::raw::c_void,
+        key_len: usize,
+        md: *const EVP_MD,
         impl_: *mut ENGINE,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_HMAC_Update"]
     pub fn HMAC_Update(
-        ctx: *mut HMAC_CTX, data: *const u8, data_len: usize,
+        ctx: *mut HMAC_CTX,
+        data: *const u8,
+        data_len: usize,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_HMAC_Final"]
     pub fn HMAC_Final(
-        ctx: *mut HMAC_CTX, out: *mut u8, out_len: *mut ::std::os::raw::c_uint,
+        ctx: *mut HMAC_CTX,
+        out: *mut u8,
+        out_len: *mut ::std::os::raw::c_uint,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
@@ -763,7 +802,9 @@ fn bindgen_test_layout_hmac_ctx_st() {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_CRYPTO_memcmp"]
     pub fn CRYPTO_memcmp(
-        a: *const ::std::os::raw::c_void, b: *const ::std::os::raw::c_void, len: usize,
+        a: *const ::std::os::raw::c_void,
+        b: *const ::std::os::raw::c_void,
+        len: usize,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
@@ -777,7 +818,9 @@ extern "C" {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_SHA1_Update"]
     pub fn SHA1_Update(
-        sha: *mut SHA_CTX, data: *const ::std::os::raw::c_void, len: usize,
+        sha: *mut SHA_CTX,
+        data: *const ::std::os::raw::c_void,
+        len: usize,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
@@ -976,7 +1019,9 @@ extern "C" {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_SHA256_Update"]
     pub fn SHA256_Update(
-        sha: *mut SHA256_CTX, data: *const ::std::os::raw::c_void, len: usize,
+        sha: *mut SHA256_CTX,
+        data: *const ::std::os::raw::c_void,
+        len: usize,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
@@ -1073,7 +1118,9 @@ extern "C" {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_SHA384_Update"]
     pub fn SHA384_Update(
-        sha: *mut SHA512_CTX, data: *const ::std::os::raw::c_void, len: usize,
+        sha: *mut SHA512_CTX,
+        data: *const ::std::os::raw::c_void,
+        len: usize,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
@@ -1087,7 +1134,9 @@ extern "C" {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_2_2_SHA512_Update"]
     pub fn SHA512_Update(
-        sha: *mut SHA512_CTX, data: *const ::std::os::raw::c_void, len: usize,
+        sha: *mut SHA512_CTX,
+        data: *const ::std::os::raw::c_void,
+        len: usize,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {

@@ -108,7 +108,8 @@ mod inner {
         }
 
         fn marshal_private_key(
-            &self, cbb: &mut CStackWrapper<boringssl::CBB>,
+            &self,
+            cbb: &mut CStackWrapper<boringssl::CBB>,
         ) -> Result<(), Error> {
             self.key.ec_key_marshal_private_key(cbb).map_err(From::from)
         }
@@ -353,8 +354,10 @@ pub mod ecdsa {
 
     use boringssl;
     use hash::{inner::Digest, Hasher, Sha256, Sha384};
-    use public::{ec::{EcPrivKey, EcPubKey, PCurve, P256, P384, P521},
-                 Signature};
+    use public::{
+        ec::{EcPrivKey, EcPubKey, PCurve, P256, P384, P521},
+        Signature,
+    };
     use util::Sealed;
     use Error;
 
@@ -541,8 +544,10 @@ mod tests {
     use super::*;
     use hash::Sha256;
     use public::ec::ecdsa::*;
-    use public::{marshal_private_key_der, marshal_public_key_der, parse_private_key_der,
-                 parse_public_key_der, Signature};
+    use public::{
+        marshal_private_key_der, marshal_public_key_der, parse_private_key_der,
+        parse_public_key_der, Signature,
+    };
     use util::should_fail;
 
     #[test]
@@ -567,7 +572,8 @@ mod tests {
             F: Fn(EcPrivKeyAnyCurve) -> EcPrivKey<C>,
             G: Fn(EcPubKeyAnyCurve) -> EcPubKey<C>,
         >(
-            unwrap_priv_any: F, unwrap_pub_any: G,
+            unwrap_priv_any: F,
+            unwrap_pub_any: G,
         ) where
             Sha256: EcdsaHash<C>,
         {
@@ -587,7 +593,8 @@ mod tests {
             );
 
             fn sign_and_verify<C1: PCurve, C2: PCurve>(
-                privkey: &EcPrivKey<C1>, pubkey: &EcPubKey<C2>,
+                privkey: &EcPrivKey<C1>,
+                pubkey: &EcPubKey<C2>,
             ) where
                 Sha256: EcdsaHash<C1>,
                 Sha256: EcdsaHash<C2>,

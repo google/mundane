@@ -196,13 +196,18 @@ mod testutil {
     /// invalid (it's up to the caller). If the byte slice is too short, it
     /// fills in the remaining bytes with zeroes.
     pub fn test_signature_smoke<S: Signature, F: Fn(&[u8]) -> S, G: Fn(&S) -> &[u8]>(
-        key: &S::PrivateKey, sig_from_bytes: F, bytes_from_sig: G,
+        key: &S::PrivateKey,
+        sig_from_bytes: F,
+        bytes_from_sig: G,
     ) {
         // Sign the message, verify the signature, and return the signature.
         // Also verify that, if the wrong signature is used, the signature fails
         // to verify. Also verify that sig_from_bytes works.
         fn sign_and_verify<S: Signature, F: Fn(&[u8]) -> S, G: Fn(&S) -> &[u8]>(
-            key: &S::PrivateKey, message: &[u8], sig_from_bytes: F, bytes_from_sig: G,
+            key: &S::PrivateKey,
+            message: &[u8],
+            sig_from_bytes: F,
+            bytes_from_sig: G,
         ) -> S {
             let sig = S::sign(key, message).unwrap();
             assert!(sig.verify(&key.public(), message));
@@ -220,7 +225,8 @@ mod testutil {
                 &msg,
                 &sig_from_bytes,
                 &bytes_from_sig,
-            )).to_vec();
+            ))
+            .to_vec();
         }
     }
 }

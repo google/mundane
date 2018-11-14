@@ -19,7 +19,9 @@ pub trait Sealed {}
 /// panics.
 #[cfg(test)]
 pub fn should_fail<O, E: ::std::fmt::Debug>(
-    result: Result<O, E>, desc: &str, expected_substr: &str,
+    result: Result<O, E>,
+    desc: &str,
+    expected_substr: &str,
 ) {
     // Credit to agl@google.com for this implementation.
     match result {

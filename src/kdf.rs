@@ -82,7 +82,10 @@ pub(crate) mod insecure_pbkdf2_hmac_sha1 {
     /// [RFC 2898 Appendix B.1]: https://tools.ietf.org/html/rfc2898#appendix-B.1
     #[deprecated(note = "PBKDF2-HMAC-SHA1 is considered insecure")]
     pub fn insecure_pbkdf2_hmac_sha1(
-        password: &[u8], salt: &[u8], iters: NonZeroU32, out_key: &mut [u8],
+        password: &[u8],
+        salt: &[u8],
+        iters: NonZeroU32,
+        out_key: &mut [u8],
     ) {
         #[allow(deprecated)]
         pbkdf2::<InsecureSha1>(password, salt, iters, out_key)
@@ -101,7 +104,10 @@ mod tests {
                 for iters in 1..8 {
                     for out_key_len in 0..8 {
                         fn test<H: Hasher>(
-                            password_len: usize, salt_len: usize, iters: u32, out_key_len: usize,
+                            password_len: usize,
+                            salt_len: usize,
+                            iters: u32,
+                            out_key_len: usize,
                         ) {
                             let password = [0, 1, 2, 3, 4, 5, 6, 7];
                             let salt = [0, 1, 2, 3, 4, 5, 6, 7];

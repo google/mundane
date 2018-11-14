@@ -15,9 +15,10 @@
 //! (e.g., `void` functions).
 
 // infallible functions
-pub use boringssl::ffi::{CBB_cleanup, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp,
-                         EC_GROUP_get_curve_name, ED25519_keypair, ED25519_keypair_from_seed,
-                         ERR_print_errors_cb, HMAC_CTX_init, HMAC_size};
+pub use boringssl::ffi::{
+    CBB_cleanup, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, EC_GROUP_get_curve_name,
+    ED25519_keypair, ED25519_keypair_from_seed, ERR_print_errors_cb, HMAC_CTX_init, HMAC_size,
+};
 
 use std::num::NonZeroUsize;
 use std::os::raw::{c_char, c_int, c_uint, c_void};
@@ -50,7 +51,10 @@ pub unsafe fn CBB_data(cbb: *const CBB) -> Result<NonNull<u8>, BoringError> {
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn ED25519_sign(
-    out: *mut [u8; 64], message: *const u8, message_len: usize, private_key: *const [u8; 64],
+    out: *mut [u8; 64],
+    message: *const u8,
+    message_len: usize,
+    private_key: *const [u8; 64],
 ) -> Result<(), BoringError> {
     one_or_err(
         "ED25519_sign",
@@ -66,7 +70,10 @@ pub unsafe fn ED25519_sign(
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn ED25519_verify(
-    message: *const u8, message_len: usize, signature: *const [u8; 64], public_key: *const [u8; 32],
+    message: *const u8,
+    message_len: usize,
+    signature: *const [u8; 64],
+    public_key: *const [u8; 32],
 ) -> bool {
     match ffi::ED25519_verify(
         message,
@@ -138,7 +145,9 @@ pub unsafe fn EC_KEY_get0_group(key: *const EC_KEY) -> Result<NonNull<EC_GROUP>,
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn EC_KEY_marshal_private_key(
-    cbb: *mut CBB, key: *const EC_KEY, enc_flags: c_uint,
+    cbb: *mut CBB,
+    key: *const EC_KEY,
+    enc_flags: c_uint,
 ) -> Result<(), BoringError> {
     one_or_err(
         "EC_KEY_marshal_private_key",
@@ -149,7 +158,8 @@ pub unsafe fn EC_KEY_marshal_private_key(
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn EC_KEY_parse_private_key(
-    cbs: *mut CBS, group: *const EC_GROUP,
+    cbs: *mut CBS,
+    group: *const EC_GROUP,
 ) -> Result<NonNull<EC_KEY>, BoringError> {
     ptr_or_err(
         "EC_KEY_parse_private_key",
@@ -160,7 +170,8 @@ pub unsafe fn EC_KEY_parse_private_key(
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn EC_KEY_set_group(
-    key: *mut EC_KEY, group: *const EC_GROUP,
+    key: *mut EC_KEY,
+    group: *const EC_GROUP,
 ) -> Result<(), BoringError> {
     one_or_err("EC_KEY_set_group", ffi::EC_KEY_set_group(key, group))
 }
@@ -170,7 +181,11 @@ pub unsafe fn EC_KEY_set_group(
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn ECDSA_sign(
-    type_: c_int, digest: *const u8, digest_len: usize, sig: *mut u8, sig_len: *mut c_uint,
+    type_: c_int,
+    digest: *const u8,
+    digest_len: usize,
+    sig: *mut u8,
+    sig_len: *mut c_uint,
     key: *const EC_KEY,
 ) -> Result<(), BoringError> {
     one_or_err(
@@ -188,7 +203,11 @@ pub unsafe fn ECDSA_size(key: *const EC_KEY) -> Result<NonZeroUsize, BoringError
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn ECDSA_verify(
-    type_: c_int, digest: *const u8, digest_len: usize, sig: *const u8, sig_len: usize,
+    type_: c_int,
+    digest: *const u8,
+    digest_len: usize,
+    sig: *const u8,
+    sig_len: usize,
     key: *const EC_KEY,
 ) -> bool {
     match ffi::ECDSA_verify(type_, digest, digest_len, sig, sig_len, key) {
@@ -204,7 +223,8 @@ pub unsafe fn ECDSA_verify(
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn EVP_marshal_public_key(
-    cbb: *mut CBB, key: *const EVP_PKEY,
+    cbb: *mut CBB,
+    key: *const EVP_PKEY,
 ) -> Result<(), BoringError> {
     one_or_err(
         "EVP_marshal_public_key",
@@ -221,7 +241,8 @@ pub unsafe fn EVP_parse_public_key(cbs: *mut CBS) -> Result<NonNull<EVP_PKEY>, B
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn EVP_PKEY_assign_EC_KEY(
-    pkey: *mut EVP_PKEY, key: *mut EC_KEY,
+    pkey: *mut EVP_PKEY,
+    key: *mut EC_KEY,
 ) -> Result<(), BoringError> {
     one_or_err(
         "EVP_PKEY_assign_EC_KEY",
@@ -241,8 +262,16 @@ pub unsafe fn EVP_PKEY_get1_EC_KEY(pkey: *mut EVP_PKEY) -> Result<NonNull<EC_KEY
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::too_many_arguments))]
 #[must_use]
 pub unsafe fn EVP_PBE_scrypt(
-    password: *const c_char, password_len: usize, salt: *const u8, salt_len: usize, N: u64, r: u64,
-    p: u64, max_mem: usize, out_key: *mut u8, key_len: usize,
+    password: *const c_char,
+    password_len: usize,
+    salt: *const u8,
+    salt_len: usize,
+    N: u64,
+    r: u64,
+    p: u64,
+    max_mem: usize,
+    out_key: *mut u8,
+    key_len: usize,
 ) -> Result<(), BoringError> {
     one_or_err(
         "EVP_PBE_scrypt",
@@ -268,8 +297,14 @@ pub unsafe fn EVP_PBE_scrypt(
 #[cfg_attr(feature = "cargo-clippy", allow(clippy::too_many_arguments))]
 #[must_use]
 pub unsafe fn PKCS5_PBKDF2_HMAC(
-    password: *const c_char, password_len: usize, salt: *const u8, salt_len: usize,
-    iterations: c_uint, digest: *const EVP_MD, key_len: usize, out_key: *mut u8,
+    password: *const c_char,
+    password_len: usize,
+    salt: *const u8,
+    salt_len: usize,
+    iterations: c_uint,
+    digest: *const EVP_MD,
+    key_len: usize,
+    out_key: *mut u8,
 ) -> Result<(), BoringError> {
     one_or_err(
         "PKCS5_PBKDF2_HMAC",
@@ -299,7 +334,10 @@ impl_traits!(HMAC_CTX, CDestruct => HMAC_CTX_cleanup);
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn HMAC_Init_ex(
-    ctx: *mut HMAC_CTX, key: *const c_void, key_len: usize, md: *const EVP_MD,
+    ctx: *mut HMAC_CTX,
+    key: *const c_void,
+    key_len: usize,
+    md: *const EVP_MD,
 ) -> Result<(), BoringError> {
     one_or_err(
         "HMAC_Init_ex",
@@ -316,7 +354,9 @@ pub unsafe fn HMAC_Update(ctx: *mut HMAC_CTX, data: *const u8, data_len: usize) 
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn HMAC_Final(
-    ctx: *mut HMAC_CTX, out: *mut u8, out_len: *mut c_uint,
+    ctx: *mut HMAC_CTX,
+    out: *mut u8,
+    out_len: *mut c_uint,
 ) -> Result<(), BoringError> {
     one_or_err("HMAC_Final", ffi::HMAC_Final(ctx, out, out_len))
 }

@@ -88,7 +88,8 @@ macro_rules! c_up_ref {
                 ::boringssl::raw::one_or_err(
                     stringify!($up_ref),
                     ::boringssl::raw::ffi::$up_ref(slf),
-                ).unwrap_abort()
+                )
+                .unwrap_abort()
             }
         }
     };

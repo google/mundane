@@ -76,13 +76,15 @@ mod wrapper;
 mod raw;
 
 // C types
-pub use boringssl::ffi::{CBB, CBS, EC_GROUP, EC_KEY, EVP_MD, EVP_PKEY, HMAC_CTX, SHA256_CTX,
-                         SHA512_CTX, SHA_CTX};
+pub use boringssl::ffi::{
+    CBB, CBS, EC_GROUP, EC_KEY, EVP_MD, EVP_PKEY, HMAC_CTX, SHA256_CTX, SHA512_CTX, SHA_CTX,
+};
 // C constants
-pub use boringssl::ffi::{NID_X9_62_prime256v1, NID_secp384r1, NID_secp521r1,
-                         ED25519_PRIVATE_KEY_LEN, ED25519_PUBLIC_KEY_LEN, ED25519_SIGNATURE_LEN,
-                         SHA256_DIGEST_LENGTH, SHA384_DIGEST_LENGTH, SHA512_DIGEST_LENGTH,
-                         SHA_DIGEST_LENGTH};
+pub use boringssl::ffi::{
+    NID_X9_62_prime256v1, NID_secp384r1, NID_secp521r1, ED25519_PRIVATE_KEY_LEN,
+    ED25519_PUBLIC_KEY_LEN, ED25519_SIGNATURE_LEN, SHA256_DIGEST_LENGTH, SHA384_DIGEST_LENGTH,
+    SHA512_DIGEST_LENGTH, SHA_DIGEST_LENGTH,
+};
 // wrapper types
 pub use boringssl::wrapper::{CHeapWrapper, CRef, CStackWrapper};
 
@@ -93,15 +95,15 @@ use std::os::raw::{c_char, c_int, c_uint, c_void};
 use std::{mem, ptr, slice};
 
 use boringssl::abort::UnwrapAbort;
-use boringssl::raw::{CBB_data, CBB_init, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, ECDSA_sign,
-                     ECDSA_size, ECDSA_verify, EC_GROUP_get_curve_name,
-                     EC_GROUP_new_by_curve_name, EC_KEY_generate_key, EC_KEY_get0_group,
-                     EC_KEY_marshal_private_key, EC_KEY_parse_private_key, EC_KEY_set_group,
-                     EC_curve_nid2nist, ED25519_keypair, ED25519_keypair_from_seed, ED25519_sign,
-                     ED25519_verify, ERR_print_errors_cb, EVP_PBE_scrypt, EVP_PKEY_assign_EC_KEY,
-                     EVP_PKEY_get1_EC_KEY, EVP_marshal_public_key, EVP_parse_public_key,
-                     HMAC_CTX_init, HMAC_Final, HMAC_Init_ex, HMAC_Update, HMAC_size, RAND_bytes,
-                     SHA384_Init};
+use boringssl::raw::{
+    CBB_data, CBB_init, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, ECDSA_sign, ECDSA_size,
+    ECDSA_verify, EC_GROUP_get_curve_name, EC_GROUP_new_by_curve_name, EC_KEY_generate_key,
+    EC_KEY_get0_group, EC_KEY_marshal_private_key, EC_KEY_parse_private_key, EC_KEY_set_group,
+    EC_curve_nid2nist, ED25519_keypair, ED25519_keypair_from_seed, ED25519_sign, ED25519_verify,
+    ERR_print_errors_cb, EVP_PBE_scrypt, EVP_PKEY_assign_EC_KEY, EVP_PKEY_get1_EC_KEY,
+    EVP_marshal_public_key, EVP_parse_public_key, HMAC_CTX_init, HMAC_Final, HMAC_Init_ex,
+    HMAC_Update, HMAC_size, RAND_bytes, SHA384_Init,
+};
 
 impl CStackWrapper<CBB> {
     /// Creates a new `CBB` and initializes it with `CBB_init`.
@@ -160,7 +162,8 @@ impl CStackWrapper<CBS> {
     // TODO(joshlf): Holdover until we figure out how to put lifetimes in CStackWrappers.
     #[must_use]
     pub fn cbs_with_temp_buffer<O, F: Fn(&mut CStackWrapper<CBS>) -> O>(
-        bytes: &[u8], with_cbs: F,
+        bytes: &[u8],
+        with_cbs: F,
     ) -> O {
         unsafe {
             let mut cbs = mem::uninitialized();
@@ -206,7 +209,8 @@ impl CHeapWrapper<EC_KEY> {
     /// `EC_KEY_parse_private_key` will be NULL.
     #[must_use]
     pub fn ec_key_parse_private_key(
-        cbs: &mut CStackWrapper<CBS>, group: Option<CRef<'static, EC_GROUP>>,
+        cbs: &mut CStackWrapper<CBS>,
+        group: Option<CRef<'static, EC_GROUP>>,
     ) -> Result<CHeapWrapper<EC_KEY>, BoringError> {
         unsafe {
             Ok(CHeapWrapper::new_from(EC_KEY_parse_private_key(
@@ -236,7 +240,8 @@ impl CHeapWrapper<EC_KEY> {
     /// The `EC_KEY_marshal_private_key` function.
     #[must_use]
     pub fn ec_key_marshal_private_key(
-        &self, cbb: &mut CStackWrapper<CBB>,
+        &self,
+        cbb: &mut CStackWrapper<CBB>,
     ) -> Result<(), BoringError> {
         unsafe { EC_KEY_marshal_private_key(cbb.as_mut(), self.as_const(), 0) }
     }
@@ -252,7 +257,9 @@ impl CHeapWrapper<EC_KEY> {
 /// size given by `ecdsa_size`, or if `key` doesn't have a group set.
 #[must_use]
 pub fn ecdsa_sign(
-    digest: &[u8], sig: &mut [u8], key: &CHeapWrapper<EC_KEY>,
+    digest: &[u8],
+    sig: &mut [u8],
+    key: &CHeapWrapper<EC_KEY>,
 ) -> Result<usize, BoringError> {
     unsafe {
         // If we call ECDSA_sign with sig.len() < min_size, it will invoke UB.
@@ -381,7 +388,13 @@ impl CHeapWrapper<EVP_PKEY> {
 #[allow(non_snake_case)]
 #[must_use]
 pub fn evp_pbe_scrypt(
-    password: &[u8], salt: &[u8], N: u64, r: u64, p: u64, max_mem: usize, out_key: &mut [u8],
+    password: &[u8],
+    salt: &[u8],
+    N: u64,
+    r: u64,
+    p: u64,
+    max_mem: usize,
+    out_key: &mut [u8],
 ) -> Result<(), BoringError> {
     unsafe {
         EVP_PBE_scrypt(
@@ -403,7 +416,10 @@ pub fn evp_pbe_scrypt(
 #[cfg(feature = "kdf")]
 #[must_use]
 pub fn pkcs5_pbkdf2_hmac(
-    password: &[u8], salt: &[u8], iterations: c_uint, digest: &CRef<'static, EVP_MD>,
+    password: &[u8],
+    salt: &[u8],
+    iterations: c_uint,
+    digest: &CRef<'static, EVP_MD>,
     out_key: &mut [u8],
 ) -> Result<(), BoringError> {
     unsafe {
@@ -479,7 +495,8 @@ impl CStackWrapper<HMAC_CTX> {
     /// due to OOM.
     #[must_use]
     pub fn hmac_ctx_new(
-        key: &[u8], md: &CRef<'static, EVP_MD>,
+        key: &[u8],
+        md: &CRef<'static, EVP_MD>,
     ) -> Result<CStackWrapper<HMAC_CTX>, BoringError> {
         unsafe {
             let mut ctx = mem::uninitialized();

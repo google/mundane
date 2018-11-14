@@ -150,7 +150,11 @@ pub mod scrypt {
         #[allow(non_snake_case)]
         #[must_use]
         pub fn new(
-            hash: [u8; SCRYPT_HASH_LEN], salt: [u8; SCRYPT_SALT_LEN], N: u64, r: u64, p: u64,
+            hash: [u8; SCRYPT_HASH_LEN],
+            salt: [u8; SCRYPT_SALT_LEN],
+            N: u64,
+            r: u64,
+            p: u64,
         ) -> ScryptHash {
             ScryptHash {
                 hash,
@@ -198,7 +202,8 @@ pub mod scrypt {
             params.p,
             SCRYPT_MAX_MEM,
             &mut hash,
-        ).unwrap();
+        )
+        .unwrap();
         ScryptHash {
             hash,
             salt,
@@ -221,7 +226,8 @@ pub mod scrypt {
             hash.params.p,
             SCRYPT_MAX_MEM,
             &mut out_hash,
-        ).is_err()
+        )
+        .is_err()
         {
             return false;
         }
