@@ -322,6 +322,11 @@ impl<C: CDestruct> CStackWrapper<C> {
     }
 
     #[must_use]
+    pub fn as_c_ref(&mut self) -> CRef<C> {
+        unsafe { CRef::new(NonNull::new_unchecked(&mut self.obj as *mut C)) }
+    }
+
+    #[must_use]
     pub fn as_mut(&mut self) -> *mut C {
         &mut self.obj
     }

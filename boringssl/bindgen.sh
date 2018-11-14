@@ -41,7 +41,10 @@ PATCH="$3"
 # former for a consistency check of the postprocessing step which adds the
 # #[link_name...] attributes. Any change of the whitelist must be made to the
 # appropriate sub-list.
-WHITELIST_FUNCS="CBS_init|\
+WHITELIST_FUNCS="BN_free|\
+BN_init|\
+BN_set_u64|\
+CBS_init|\
 CBS_len|\
 CBB_init|\
 CBB_cleanup|\
@@ -74,7 +77,9 @@ EVP_PKEY_new|\
 EVP_PKEY_free|\
 EVP_PKEY_up_ref|\
 EVP_PKEY_assign_EC_KEY|\
+EVP_PKEY_assign_RSA|\
 EVP_PKEY_get1_EC_KEY|\
+EVP_PKEY_get1_RSA|\
 EVP_parse_public_key|\
 EVP_marshal_public_key|\
 PKCS5_PBKDF2_HMAC|\
@@ -87,6 +92,18 @@ HMAC_Final|\
 HMAC_size|\
 CRYPTO_memcmp|\
 RAND_bytes|\
+RSA_bits|\
+RSA_free|\
+RSA_generate_key_ex|\
+RSA_marshal_private_key|\
+RSA_new|\
+RSA_parse_private_key|\
+RSA_sign|\
+RSA_sign_pss_mgf1|\
+RSA_size|\
+RSA_up_ref|\
+RSA_verify|\
+RSA_verify_pss_mgf1|\
 SHA1_Init|\
 SHA1_Update|\
 SHA1_Final|\
@@ -100,7 +117,9 @@ SHA512_Init|\
 SHA512_Update|\
 SHA512_Final"
 
-WHITELIST_OTHERS="CBB|\
+WHITELIST_OTHERS="BIGNUM|\
+BN_GENCB|\
+CBB|\
 CBS|\
 EC_GROUP|\
 EC_KEY|\
@@ -113,6 +132,12 @@ HMAC_CTX|\
 NID_X9_62_prime256v1|\
 NID_secp384r1|\
 NID_secp521r1|\
+NID_sha1|\
+NID_sha256|\
+NID_sha384|\
+NID_sha512|\
+RSA|\
+RSA_F4|\
 SHA_CTX|\
 SHA_DIGEST_LENGTH|\
 SHA256_CTX|\

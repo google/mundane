@@ -18,16 +18,34 @@
 pub use boringssl::ffi::{
     CBB_cleanup, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, EC_GROUP_get_curve_name,
     ED25519_keypair, ED25519_keypair_from_seed, ERR_print_errors_cb, HMAC_CTX_init, HMAC_size,
+    RSA_bits,
 };
 
+use std::convert::TryInto;
 use std::num::NonZeroUsize;
 use std::os::raw::{c_char, c_int, c_uint, c_void};
 use std::ptr::{self, NonNull};
 
-use boringssl::ffi::{self, CBB, CBS, EC_GROUP, EC_KEY, EVP_MD, EVP_PKEY, HMAC_CTX, SHA512_CTX};
+use boringssl::ffi::{
+    self, BIGNUM, BN_GENCB, CBB, CBS, EC_GROUP, EC_KEY, EVP_MD, EVP_PKEY, HMAC_CTX, RSA, SHA512_CTX,
+};
 
+use boringssl::abort::UnwrapAbort;
 use boringssl::wrapper::CInit;
 use boringssl::BoringError;
+
+// bn.h
+
+// BIGNUMs can be either heap- or stack-allocated, and they keep track of which
+// they are internally so that BN_free does the right thing - freeing the object
+// itself if heap-allocated, and only freeing its internal state otherwise.
+impl_traits!(BIGNUM, CInit => BN_init, CDestruct => BN_free);
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn BN_set_u64(bn: *mut BIGNUM, value: u64) -> Result<(), BoringError> {
+    one_or_err("BN_set_u64", ffi::BN_set_u64(bn, value))
+}
 
 // bytestring.h
 
@@ -252,8 +270,20 @@ pub unsafe fn EVP_PKEY_assign_EC_KEY(
 
 #[allow(non_snake_case)]
 #[must_use]
+pub unsafe fn EVP_PKEY_assign_RSA(pkey: *mut EVP_PKEY, key: *mut RSA) -> Result<(), BoringError> {
+    one_or_err("EVP_PKEY_assign_RSA", ffi::EVP_PKEY_assign_RSA(pkey, key))
+}
+
+#[allow(non_snake_case)]
+#[must_use]
 pub unsafe fn EVP_PKEY_get1_EC_KEY(pkey: *mut EVP_PKEY) -> Result<NonNull<EC_KEY>, BoringError> {
     ptr_or_err("EVP_PKEY_get1_EC_KEY", ffi::EVP_PKEY_get1_EC_KEY(pkey))
+}
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn EVP_PKEY_get1_RSA(pkey: *mut EVP_PKEY) -> Result<NonNull<RSA>, BoringError> {
+    ptr_or_err("EVP_PKEY_get1_RSA", ffi::EVP_PKEY_get1_RSA(pkey))
 }
 
 #[allow(non_snake_case)]
@@ -363,6 +393,46 @@ pub unsafe fn HMAC_Final(
 pub unsafe fn RAND_bytes(buf: *mut u8, len: usize) {
     // RAND_bytes promises to return 1.
     assert_abort_eq!(ffi::RAND_bytes(buf, len), 1);
+}
+
+// rsa.h
+
+impl_traits!(RSA, CNew => RSA_new, CUpRef => RSA_up_ref, CFree => RSA_free);
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn RSA_generate_key_ex(
+    rsa: *mut RSA,
+    bits: c_int,
+    e: *const BIGNUM,
+    cb: *mut BN_GENCB,
+) -> Result<(), BoringError> {
+    one_or_err(
+        "RSA_generate_key_ex",
+        ffi::RSA_generate_key_ex(rsa, bits, e, cb),
+    )
+}
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn RSA_marshal_private_key(cbb: *mut CBB, rsa: *const RSA) -> Result<(), BoringError> {
+    one_or_err(
+        "RSA_marshal_private_key",
+        ffi::RSA_marshal_private_key(cbb, rsa),
+    )
+}
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn RSA_parse_private_key(cbs: *mut CBS) -> Result<NonNull<RSA>, BoringError> {
+    ptr_or_err("RSA_parse_private_key", ffi::RSA_parse_private_key(cbs))
+}
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn RSA_size(key: *const RSA) -> Result<NonZeroUsize, BoringError> {
+    NonZeroUsize::new(ffi::RSA_size(key).try_into().unwrap_abort())
+        .ok_or_else(|| BoringError::consume_stack("RSA_size"))
 }
 
 // sha.h

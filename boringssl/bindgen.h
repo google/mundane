@@ -4,6 +4,7 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+#include <openssl/bn.h>
 #include <openssl/bytestring.h>
 #include <openssl/curve25519.h>
 #include <openssl/ec.h>
@@ -14,4 +15,5 @@
 #include <openssl/hmac.h>
 #include <openssl/mem.h>
 #include <openssl/rand.h>
+#include <openssl/rsa.h>
 #include <openssl/sha.h>

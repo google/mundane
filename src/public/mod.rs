@@ -8,6 +8,7 @@
 
 pub mod ec;
 pub mod ed25519;
+pub mod rsa;
 
 use boringssl::{CHeapWrapper, CStackWrapper};
 use public::inner::BoringDerKey;

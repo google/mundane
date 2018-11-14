@@ -11,10 +11,13 @@ use std::fmt::{self, Debug, Display, Formatter};
 use boringssl::{self, CStackWrapper};
 
 pub(crate) mod inner {
+    use std::os::raw::c_int;
+
     use boringssl::{CRef, EVP_MD};
 
     pub trait Hasher {
         fn evp_md() -> CRef<'static, EVP_MD>;
+        fn nid() -> c_int;
     }
 
     pub trait Digest {
@@ -176,7 +179,7 @@ pub struct Sha512Digest(pub(crate) [u8; boringssl::SHA512_DIGEST_LENGTH as usize
 /// For the digest type, the traits `PartialEq`, `Eq`, `Display`, and `Debug`
 /// are also implemented.
 macro_rules! impl_hash {
-    ($name:ident, $digest_name:path, $digest_len:path, $update:ident, $final:ident, $evp_md:ident) => {
+    ($name:ident, $digest_name:path, $digest_len:path, $update:ident, $final:ident, $evp_md:ident, $nid:ident) => {
         #[allow(deprecated)]
         impl ::util::Sealed for $name {}
         #[allow(deprecated)]
@@ -195,6 +198,10 @@ macro_rules! impl_hash {
         impl self::inner::Hasher for $name {
             fn evp_md() -> ::boringssl::CRef<'static, ::boringssl::EVP_MD> {
                 ::boringssl::CRef::$evp_md()
+            }
+            fn nid() -> ::std::os::raw::c_int {
+                use std::convert::TryInto;
+                ::boringssl::$nid.try_into().unwrap()
             }
         }
         #[allow(deprecated)]
@@ -254,7 +261,8 @@ impl_hash!(
     boringssl::SHA_DIGEST_LENGTH,
     sha1_update,
     sha1_final,
-    evp_sha1
+    evp_sha1,
+    NID_sha1
 );
 impl_hash!(
     Sha256,
@@ -262,7 +270,8 @@ impl_hash!(
     boringssl::SHA256_DIGEST_LENGTH,
     sha256_update,
     sha256_final,
-    evp_sha256
+    evp_sha256,
+    NID_sha256
 );
 impl_hash!(
     Sha384,
@@ -270,7 +279,8 @@ impl_hash!(
     boringssl::SHA384_DIGEST_LENGTH,
     sha384_update,
     sha384_final,
-    evp_sha384
+    evp_sha384,
+    NID_sha384
 );
 impl_hash!(
     Sha512,
@@ -278,7 +288,8 @@ impl_hash!(
     boringssl::SHA512_DIGEST_LENGTH,
     sha512_update,
     sha512_final,
-    evp_sha512
+    evp_sha512,
+    NID_sha512
 );
 
 #[cfg(test)]
