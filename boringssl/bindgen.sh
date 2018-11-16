@@ -132,13 +132,24 @@ cat >> "$TMP" <<'EOF'
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+// Some symbols are only used with certain features enabled, so we need to
+// suppress the unused warning when those features aren't enabled.
+#![allow(unused)]
+// Only necessary for test_symbol_conflict.sh, which exposes these symbols
+// through Mundane's public interface.
+#![allow(missing_docs)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-#[link(name = "crypto_${MAJOR}_${MINOR}_${PATCH}")] extern {}
-
 EOF
+
+# Do this on a separate line because we need string interpolation, but we can't
+# use string interpolation in the preceding 'cat' command, or else the !
+# characters would be interpreted.
+echo "#[link(name = \"crypto_${MAJOR}_${MINOR}_${PATCH}\")] extern {}" >> "$TMP"
+echo >> "$TMP"
+
 cat boringssl.rs >> "$TMP"
 
 mv "$TMP" boringssl.rs
