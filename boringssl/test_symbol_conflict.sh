@@ -15,7 +15,7 @@
 # - Create two crates, one depending on mundane-v1, and one on mundane-v2, each
 #   of which exposes all of the BoringSSL symbols from Mundane
 # - Create a top-level program which depends on both of these crates
-# - Have the top-level program's main call all of the Mundane functions from
+# - Have the top-level program's main link all of the Mundane functions from
 #   each of the crates
 # - Produce a release build, which forces linking, to make sure that linking
 #   these two versions of the library at the same time works properly
@@ -27,6 +27,7 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CRATE_ROOT="${SCRIPT_DIR}/.."
 
 TMP="$(mktemp -d)"
+trap "rm -rf $TMP" EXIT
 cd "$TMP"
 
 # NOTE: The -L means to follow symlinks
@@ -103,136 +104,26 @@ depends-mundane-v1 = { path = "./depends-mundane-v1" }
 depends-mundane-v2 = { path = "./depends-mundane-v2" }
 EOF
 
-# The body of main() is generated with the following scripts:
-# rg -U 'extern "C" \{\n[^\n]*\n    pub fn [0-9A-Za-z_]*([^)]*)' boringssl.rs | grep '^ *pub fn' | sed -e 's/.*pub fn \([^(]*\).*/println!("{:?}", depends_mundane_v1::\1 as *const ());/'
-# rg -U 'extern "C" \{\n[^\n]*\n    pub fn [0-9A-Za-z_]*([^)]*)' boringssl.rs | grep '^ *pub fn' | sed -e 's/.*pub fn \([^(]*\).*/println!("{:?}", depends_mundane_v2::\1 as *const ());/'
-
 mkdir src
 cat >> src/main.rs <<EOF
 extern crate depends_mundane_v1;
 extern crate depends_mundane_v2;
 
 fn main() {
-println!("{:?}", depends_mundane_v1::ERR_print_errors_cb as *const ());
-println!("{:?}", depends_mundane_v1::CBS_init as *const ());
-println!("{:?}", depends_mundane_v1::CBS_len as *const ());
-println!("{:?}", depends_mundane_v1::CBB_init as *const ());
-println!("{:?}", depends_mundane_v1::CBB_cleanup as *const ());
-println!("{:?}", depends_mundane_v1::CBB_data as *const ());
-println!("{:?}", depends_mundane_v1::CBB_len as *const ());
-println!("{:?}", depends_mundane_v1::ED25519_keypair as *const ());
-println!("{:?}", depends_mundane_v1::ED25519_sign as *const ());
-println!("{:?}", depends_mundane_v1::ED25519_verify as *const ());
-println!("{:?}", depends_mundane_v1::ED25519_keypair_from_seed as *const ());
-println!("{:?}", depends_mundane_v1::EVP_sha1 as *const ());
-println!("{:?}", depends_mundane_v1::EVP_sha256 as *const ());
-println!("{:?}", depends_mundane_v1::EVP_sha384 as *const ());
-println!("{:?}", depends_mundane_v1::EVP_sha512 as *const ());
-println!("{:?}", depends_mundane_v1::EC_GROUP_new_by_curve_name as *const ());
-println!("{:?}", depends_mundane_v1::EC_GROUP_get_curve_name as *const ());
-println!("{:?}", depends_mundane_v1::EC_curve_nid2nist as *const ());
-println!("{:?}", depends_mundane_v1::EC_KEY_new as *const ());
-println!("{:?}", depends_mundane_v1::EC_KEY_free as *const ());
-println!("{:?}", depends_mundane_v1::EC_KEY_up_ref as *const ());
-println!("{:?}", depends_mundane_v1::EC_KEY_get0_group as *const ());
-println!("{:?}", depends_mundane_v1::EC_KEY_set_group as *const ());
-println!("{:?}", depends_mundane_v1::EC_KEY_generate_key as *const ());
-println!("{:?}", depends_mundane_v1::EC_KEY_parse_private_key as *const ());
-println!("{:?}", depends_mundane_v1::EC_KEY_marshal_private_key as *const ());
-println!("{:?}", depends_mundane_v1::ECDSA_sign as *const ());
-println!("{:?}", depends_mundane_v1::ECDSA_verify as *const ());
-println!("{:?}", depends_mundane_v1::ECDSA_size as *const ());
-println!("{:?}", depends_mundane_v1::EVP_PKEY_new as *const ());
-println!("{:?}", depends_mundane_v1::EVP_PKEY_free as *const ());
-println!("{:?}", depends_mundane_v1::EVP_PKEY_up_ref as *const ());
-println!("{:?}", depends_mundane_v1::EVP_PKEY_assign_EC_KEY as *const ());
-println!("{:?}", depends_mundane_v1::EVP_PKEY_get1_EC_KEY as *const ());
-println!("{:?}", depends_mundane_v1::EVP_parse_public_key as *const ());
-println!("{:?}", depends_mundane_v1::EVP_marshal_public_key as *const ());
-println!("{:?}", depends_mundane_v1::PKCS5_PBKDF2_HMAC as *const ());
-println!("{:?}", depends_mundane_v1::EVP_PBE_scrypt as *const ());
-println!("{:?}", depends_mundane_v1::HMAC_CTX_init as *const ());
-println!("{:?}", depends_mundane_v1::HMAC_CTX_cleanup as *const ());
-println!("{:?}", depends_mundane_v1::HMAC_Init_ex as *const ());
-println!("{:?}", depends_mundane_v1::HMAC_Update as *const ());
-println!("{:?}", depends_mundane_v1::HMAC_Final as *const ());
-println!("{:?}", depends_mundane_v1::HMAC_size as *const ());
-println!("{:?}", depends_mundane_v1::CRYPTO_memcmp as *const ());
-println!("{:?}", depends_mundane_v1::RAND_bytes as *const ());
-println!("{:?}", depends_mundane_v1::SHA1_Init as *const ());
-println!("{:?}", depends_mundane_v1::SHA1_Update as *const ());
-println!("{:?}", depends_mundane_v1::SHA1_Final as *const ());
-println!("{:?}", depends_mundane_v1::SHA256_Init as *const ());
-println!("{:?}", depends_mundane_v1::SHA256_Update as *const ());
-println!("{:?}", depends_mundane_v1::SHA256_Final as *const ());
-println!("{:?}", depends_mundane_v1::SHA384_Init as *const ());
-println!("{:?}", depends_mundane_v1::SHA384_Update as *const ());
-println!("{:?}", depends_mundane_v1::SHA384_Final as *const ());
-println!("{:?}", depends_mundane_v1::SHA512_Init as *const ());
-println!("{:?}", depends_mundane_v1::SHA512_Update as *const ());
-println!("{:?}", depends_mundane_v1::SHA512_Final as *const ());
-println!("{:?}", depends_mundane_v2::ERR_print_errors_cb as *const ());
-println!("{:?}", depends_mundane_v2::CBS_init as *const ());
-println!("{:?}", depends_mundane_v2::CBS_len as *const ());
-println!("{:?}", depends_mundane_v2::CBB_init as *const ());
-println!("{:?}", depends_mundane_v2::CBB_cleanup as *const ());
-println!("{:?}", depends_mundane_v2::CBB_data as *const ());
-println!("{:?}", depends_mundane_v2::CBB_len as *const ());
-println!("{:?}", depends_mundane_v2::ED25519_keypair as *const ());
-println!("{:?}", depends_mundane_v2::ED25519_sign as *const ());
-println!("{:?}", depends_mundane_v2::ED25519_verify as *const ());
-println!("{:?}", depends_mundane_v2::ED25519_keypair_from_seed as *const ());
-println!("{:?}", depends_mundane_v2::EVP_sha1 as *const ());
-println!("{:?}", depends_mundane_v2::EVP_sha256 as *const ());
-println!("{:?}", depends_mundane_v2::EVP_sha384 as *const ());
-println!("{:?}", depends_mundane_v2::EVP_sha512 as *const ());
-println!("{:?}", depends_mundane_v2::EC_GROUP_new_by_curve_name as *const ());
-println!("{:?}", depends_mundane_v2::EC_GROUP_get_curve_name as *const ());
-println!("{:?}", depends_mundane_v2::EC_curve_nid2nist as *const ());
-println!("{:?}", depends_mundane_v2::EC_KEY_new as *const ());
-println!("{:?}", depends_mundane_v2::EC_KEY_free as *const ());
-println!("{:?}", depends_mundane_v2::EC_KEY_up_ref as *const ());
-println!("{:?}", depends_mundane_v2::EC_KEY_get0_group as *const ());
-println!("{:?}", depends_mundane_v2::EC_KEY_set_group as *const ());
-println!("{:?}", depends_mundane_v2::EC_KEY_generate_key as *const ());
-println!("{:?}", depends_mundane_v2::EC_KEY_parse_private_key as *const ());
-println!("{:?}", depends_mundane_v2::EC_KEY_marshal_private_key as *const ());
-println!("{:?}", depends_mundane_v2::ECDSA_sign as *const ());
-println!("{:?}", depends_mundane_v2::ECDSA_verify as *const ());
-println!("{:?}", depends_mundane_v2::ECDSA_size as *const ());
-println!("{:?}", depends_mundane_v2::EVP_PKEY_new as *const ());
-println!("{:?}", depends_mundane_v2::EVP_PKEY_free as *const ());
-println!("{:?}", depends_mundane_v2::EVP_PKEY_up_ref as *const ());
-println!("{:?}", depends_mundane_v2::EVP_PKEY_assign_EC_KEY as *const ());
-println!("{:?}", depends_mundane_v2::EVP_PKEY_get1_EC_KEY as *const ());
-println!("{:?}", depends_mundane_v2::EVP_parse_public_key as *const ());
-println!("{:?}", depends_mundane_v2::EVP_marshal_public_key as *const ());
-println!("{:?}", depends_mundane_v2::PKCS5_PBKDF2_HMAC as *const ());
-println!("{:?}", depends_mundane_v2::EVP_PBE_scrypt as *const ());
-println!("{:?}", depends_mundane_v2::HMAC_CTX_init as *const ());
-println!("{:?}", depends_mundane_v2::HMAC_CTX_cleanup as *const ());
-println!("{:?}", depends_mundane_v2::HMAC_Init_ex as *const ());
-println!("{:?}", depends_mundane_v2::HMAC_Update as *const ());
-println!("{:?}", depends_mundane_v2::HMAC_Final as *const ());
-println!("{:?}", depends_mundane_v2::HMAC_size as *const ());
-println!("{:?}", depends_mundane_v2::CRYPTO_memcmp as *const ());
-println!("{:?}", depends_mundane_v2::RAND_bytes as *const ());
-println!("{:?}", depends_mundane_v2::SHA1_Init as *const ());
-println!("{:?}", depends_mundane_v2::SHA1_Update as *const ());
-println!("{:?}", depends_mundane_v2::SHA1_Final as *const ());
-println!("{:?}", depends_mundane_v2::SHA256_Init as *const ());
-println!("{:?}", depends_mundane_v2::SHA256_Update as *const ());
-println!("{:?}", depends_mundane_v2::SHA256_Final as *const ());
-println!("{:?}", depends_mundane_v2::SHA384_Init as *const ());
-println!("{:?}", depends_mundane_v2::SHA384_Update as *const ());
-println!("{:?}", depends_mundane_v2::SHA384_Final as *const ());
-println!("{:?}", depends_mundane_v2::SHA512_Init as *const ());
-println!("{:?}", depends_mundane_v2::SHA512_Update as *const ());
-println!("{:?}", depends_mundane_v2::SHA512_Final as *const ());
-}
 EOF
 
-cargo build --release
+# Populate the body of main() with lines of the form:
+# println!("{:?}", depends_mundane_v1::SYMBOL as *const ());
+# println!("{:?}", depends_mundane_v2::SYMBOL as *const ());
+#
+# Find the functions to use by scraping boringssl.rs.
+#
+# TODO(joshlf): Are there other types of symbols we want to include (such as
+# static variables)?
+rg -U 'extern "C" \{\n[^\n]*\n    pub fn [0-9A-Za-z_]*([^)]*)' "${SCRIPT_DIR}/boringssl.rs" | \
+    grep '^ *pub fn' | sed -e 's/.*pub fn \([^(]*\).*/println!("{:?}", depends_mundane_v1::\1 as *const ());/' >> src/main.rs
+rg -U 'extern "C" \{\n[^\n]*\n    pub fn [0-9A-Za-z_]*([^)]*)' "${SCRIPT_DIR}/boringssl.rs" | \
+    grep '^ *pub fn' | sed -e 's/.*pub fn \([^(]*\).*/println!("{:?}", depends_mundane_v2::\1 as *const ());/' >> src/main.rs
+echo '}' >> src/main.rs
 
-cd -
-rm -rf "$TMP"
+cargo build --release
