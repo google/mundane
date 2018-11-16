@@ -32,85 +32,97 @@ PATCH="$3"
 # effort in a graceful transition or decide to abandon the change. Thus, instead
 # of whitelisting broad classes of symbols, we explicitly whitelist the exact
 # list of symbols that Mundane depends on.
-WHITELIST="(CBB|\
+
+# TODO(inejge):
+# - When https://github.com/rust-lang-nursery/rust-bindgen/issues/1375 is resolved,
+#   go back to a single whitelist
+
+# Split the whitelist into function names and other symbols, in order to use the
+# former for a consistency check of the postprocessing step which adds the
+# #[link_name...] attributes. Any change of the whitelist must be made to the
+# appropriate sub-list.
+WHITELIST_FUNCS="CBS_init|\
+CBS_len|\
+CBB_init|\
 CBB_cleanup|\
 CBB_data|\
-CBB_init|\
 CBB_len|\
-CBS|\
-CBS_init|\
-CBS_len|\
-CRYPTO_memcmp|\
-ECDSA_sign|\
-ECDSA_size|\
-ECDSA_verify|\
-EC_GROUP|\
-EC_GROUP_get_curve_name|\
-EC_GROUP_new_by_curve_name|\
-EC_KEY|\
-EC_KEY_free|\
-EC_KEY_generate_key|\
-EC_KEY_get0_group|\
-EC_KEY_marshal_private_key|\
-EC_KEY_new|\
-EC_KEY_parse_private_key|\
-EC_KEY_set_group|\
-EC_KEY_up_ref|\
-EC_curve_nid2nist|\
-ED25519_PRIVATE_KEY_LEN|\
-ED25519_PUBLIC_KEY_LEN|\
-ED25519_SIGNATURE_LEN|\
 ED25519_keypair|\
-ED25519_keypair_from_seed|\
 ED25519_sign|\
 ED25519_verify|\
+ED25519_keypair_from_seed|\
+EC_GROUP_new_by_curve_name|\
+EC_GROUP_get_curve_name|\
+EC_curve_nid2nist|\
+EC_KEY_new|\
+EC_KEY_free|\
+EC_KEY_up_ref|\
+EC_KEY_get0_group|\
+EC_KEY_set_group|\
+EC_KEY_generate_key|\
+EC_KEY_parse_private_key|\
+EC_KEY_marshal_private_key|\
+ECDSA_sign|\
+ECDSA_verify|\
+ECDSA_size|\
 ERR_print_errors_cb|\
-EVP_MD|\
-EVP_PBE_scrypt|\
-EVP_PKEY|\
-EVP_PKEY_assign_EC_KEY|\
-EVP_PKEY_free|\
-EVP_PKEY_get1_EC_KEY|\
-EVP_PKEY_new|\
-EVP_PKEY_up_ref|\
-EVP_marshal_public_key|\
-EVP_parse_public_key|\
 EVP_sha1|\
 EVP_sha256|\
 EVP_sha384|\
 EVP_sha512|\
-HMAC_CTX|\
-HMAC_CTX_cleanup|\
+EVP_PKEY_new|\
+EVP_PKEY_free|\
+EVP_PKEY_up_ref|\
+EVP_PKEY_assign_EC_KEY|\
+EVP_PKEY_get1_EC_KEY|\
+EVP_parse_public_key|\
+EVP_marshal_public_key|\
+PKCS5_PBKDF2_HMAC|\
+EVP_PBE_scrypt|\
 HMAC_CTX_init|\
-HMAC_Final|\
+HMAC_CTX_cleanup|\
 HMAC_Init_ex|\
 HMAC_Update|\
+HMAC_Final|\
 HMAC_size|\
+CRYPTO_memcmp|\
+RAND_bytes|\
+SHA1_Init|\
+SHA1_Update|\
+SHA1_Final|\
+SHA256_Init|\
+SHA256_Update|\
+SHA256_Final|\
+SHA384_Init|\
+SHA384_Update|\
+SHA384_Final|\
+SHA512_Init|\
+SHA512_Update|\
+SHA512_Final"
+
+WHITELIST_OTHERS="CBB|\
+CBS|\
+EC_GROUP|\
+EC_KEY|\
+ED25519_PRIVATE_KEY_LEN|\
+ED25519_PUBLIC_KEY_LEN|\
+ED25519_SIGNATURE_LEN|\
+EVP_MD|\
+EVP_PKEY|\
+HMAC_CTX|\
 NID_X9_62_prime256v1|\
 NID_secp384r1|\
 NID_secp521r1|\
-RAND_bytes|\
-PKCS5_PBKDF2_HMAC|\
 SHA_CTX|\
 SHA_DIGEST_LENGTH|\
-SHA1_Final|\
-SHA1_Init|\
-SHA1_Update|\
 SHA256_CTX|\
 SHA256_DIGEST_LENGTH|\
-SHA256_Final|\
-SHA256_Init|\
-SHA256_Update|\
 SHA512_CTX|\
 SHA384_DIGEST_LENGTH|\
-SHA384_Final|\
-SHA384_Init|\
-SHA384_Update|\
 SHA512_CTX|\
-SHA512_DIGEST_LENGTH|\
-SHA512_Final|\
-SHA512_Init|\
-SHA512_Update)"
+SHA512_DIGEST_LENGTH"
+
+WHITELIST="(${WHITELIST_FUNCS}|${WHITELIST_OTHERS})"
 
 # NOTE(joshlf): Currently, we don't pass --target since none of the symbols
 # we're linking against are architecture-specific (TODO: are any of them
@@ -125,7 +137,7 @@ TMP="$(mktemp)"
 
 # Prepend copyright comment, #[allow] for various warnings we don't care about,
 # and a line telling Rust to link against libcrypto.
-cat >> "$TMP" <<'EOF'
+(cat <<'EOF'
 // Copyright 2018 Google LLC
 //
 // Use of this source code is governed by an MIT-style
@@ -147,10 +159,47 @@ EOF
 # Do this on a separate line because we need string interpolation, but we can't
 # use string interpolation in the preceding 'cat' command, or else the !
 # characters would be interpreted.
-echo "#[link(name = \"crypto_${MAJOR}_${MINOR}_${PATCH}\")] extern {}" >> "$TMP"
-echo >> "$TMP"
+echo "#[link(name = \"crypto_${MAJOR}_${MINOR}_${PATCH}\")] extern {}"
+echo
 
-cat boringssl.rs >> "$TMP"
-
+cat boringssl.rs) \
+| rustfmt \
+| (
+# Postprocess the generated bindings, adding the "#[link_name ...]"
+# attribute to exported functions. Since the function sites are matched
+# lexically, check the consistency of matches against the list of function
+# names defined above. An error will be returned if a) a matched function
+# is not in the whitelist, b) a name from the whitelist wasn't matched
+# in the input, or c) a name was matched more than once (which should
+# never happen).
+awk -v "vers=${MAJOR}_${MINOR}_${PATCH}_" -v "funcs=${WHITELIST_FUNCS}" '
+BEGIN {
+    split(funcs, fa, "[|]")
+    for (fn in fa)
+        f[fa[fn]]
+}
+/extern "C" {/ {
+    print
+    getline
+    if ($0 ~ "#[[]link_name")
+        getline
+    if ($0 ~ "pub fn") {
+        fn = $3
+        sub("[(].*", "", fn)
+        if (!(fn in f)) {
+            print "fatal: fn not in whitelist: " fn | "cat >&2"
+            exit 1
+        } else
+            f[fn]++
+        print "    #[link_name = \"__RUST_MUNDANE_" vers fn "\"]"
+    }
+}
+{ print }
+END {
+    for (fn in f)
+        if (f[fn] != 1) {
+            print "fatal: fn match count = " f[fn] + 0 ", should be 1: " fn | "cat >&2"
+            exit 1
+        }
+}') > "$TMP"
 mv "$TMP" boringssl.rs
-rustfmt boringssl.rs
