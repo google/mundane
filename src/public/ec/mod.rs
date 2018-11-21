@@ -223,7 +223,7 @@ impl<C: PCurve> Debug for EcPrivKey<C> {
 /// An elliptic curve public key whose curve is unknown at compile time.
 ///
 /// An `EcPubKeyAnyCurve` is an enum of [`EcPubKey`]s over the three supported
-/// curves. It is returned from [`parse_public_key_der_any_curve`].
+/// curves.
 #[allow(missing_docs)]
 #[derive(Debug)]
 pub enum EcPubKeyAnyCurve {
@@ -232,10 +232,57 @@ pub enum EcPubKeyAnyCurve {
     P521(EcPubKey<P521>),
 }
 
+impl EcPubKeyAnyCurve {
+    /// Parses a public key in DER format with any curve.
+    ///
+    /// `parse_from_der` is like [`DerPublicKey::parse_from_der`], but it
+    /// accepts any [`PCurve`] rather than a particular, static curve.
+    ///
+    /// Since [`EcPubKey`] requires a static [`PCurve`] type parameter, the
+    /// `parse_from_der` function on `EcPubKey`'s `DerPublicKey` implementation
+    /// can only be called when the curve is known ahead of time. This function,
+    /// on the other hand, accepts any curve.
+    ///
+    /// Because the curve is not known statically, one must be specified in the DER
+    /// input.
+    ///
+    /// [`DerPublicKey::parse_from_der`]: ::public::DerPublicKey::parse_from_der
+    /// [`PublicKey`]: ::public::PublicKey
+    #[must_use]
+    pub fn parse_from_der(bytes: &[u8]) -> Result<EcPubKeyAnyCurve, Error> {
+        CStackWrapper::cbs_with_temp_buffer(bytes, |cbs| {
+            let mut evp_pkey = CHeapWrapper::evp_parse_public_key(cbs)?;
+            let key = evp_pkey.evp_pkey_get1_ec_key()?;
+            if cbs.cbs_len() > 0 {
+                return Err(Error::new(
+                    "excess data provided after valid DER input".to_string(),
+                ));
+            }
+
+            // EVP_parse_public_key guarantees that the returned key has its group
+            // set, so this unwrap is safe.
+            let group = key.ec_key_get0_group().unwrap();
+            Ok(
+                match CurveKind::from_nid(group.ec_group_get_curve_name())? {
+                    CurveKind::P256 => EcPubKeyAnyCurve::P256(EcPubKey {
+                        inner: EcKey::from_EC_KEY(key.clone())?,
+                    }),
+                    CurveKind::P384 => EcPubKeyAnyCurve::P384(EcPubKey {
+                        inner: EcKey::from_EC_KEY(key.clone())?,
+                    }),
+                    CurveKind::P521 => EcPubKeyAnyCurve::P521(EcPubKey {
+                        inner: EcKey::from_EC_KEY(key.clone())?,
+                    }),
+                },
+            )
+        })
+    }
+}
+
 /// An elliptic curve private key whose curve is unknown at compile time.
 ///
 /// An `EcPrivKeyAnyCurve` is an enum of [`EcPrivKey`]s over the three supported
-/// curves. It is returned from [`parse_private_key_der_any_curve`].
+/// curves.
 #[allow(missing_docs)]
 #[derive(Debug)]
 pub enum EcPrivKeyAnyCurve {
@@ -254,97 +301,52 @@ impl EcPrivKeyAnyCurve {
             EcPrivKeyAnyCurve::P521(key) => EcPubKeyAnyCurve::P521(key.public()),
         }
     }
-}
 
-/// Parses a public key in DER format with any curve.
-///
-/// `parse_public_key_der_any_curve` is like [`parse_public_key_der`], but it
-/// accepts any [`PCurve`] rather than a particular, static curve.
-///
-/// Since `parse_public_key_der` takes a [`PublicKey`] type argument, and
-/// [`EcPubKey`] requires a static [`PCurve`] type parameter,
-/// `parse_public_key_der` can only be called when the curve is known ahead of
-/// time. `parse_public_key_der_any_curve`, on the other hand, accepts any
-/// curve. It returns an [`EcPubKeyAnyCurve`], which is an enum of keys over the
-/// three supported curves.
-///
-/// Because the curve is not known statically, one must be specified in the DER
-/// input.
-///
-/// [`parse_public_key_der`]: ::public::parse_public_key_der
-/// [`PublicKey`]: ::public::PublicKey
-#[must_use]
-pub fn parse_public_key_der_any_curve(bytes: &[u8]) -> Result<EcPubKeyAnyCurve, Error> {
-    CStackWrapper::cbs_with_temp_buffer(bytes, |cbs| {
-        let mut evp_pkey = CHeapWrapper::evp_parse_public_key(cbs)?;
-        let key = evp_pkey.evp_pkey_get1_ec_key()?;
-        if cbs.cbs_len() > 0 {
-            return Err(Error::new("malformed DER input".to_string()));
-        }
+    /// Parses a private key in DER format with any curve.
+    ///
+    /// `parse_from_der` is like [`DerPrivateKey::parse_from_der`], but it
+    /// accepts any [`PCurve`] rather than a particular, static curve.
+    ///
+    /// Since [`EcPrivKey`] requires a static [`PCurve`] type parameter, the
+    /// `parse_from_der` function on `EcPrivKey`'s `DerPrivateKey`
+    /// implementation can only be called when the curve is known ahead of time.
+    /// This function, on the other hand, accepts any curve.
+    ///
+    /// Because the curve is not known statically, one must be specified in the DER
+    /// input.
+    ///
+    /// [`DerPrivateKey::parse_from_der`]: ::public::DerPrivateKey::parse_from_der
+    /// [`PrivateKey`]: ::public::PrivateKey
+    #[must_use]
+    pub fn parse_from_der(bytes: &[u8]) -> Result<EcPrivKeyAnyCurve, Error> {
+        CStackWrapper::cbs_with_temp_buffer(bytes, |cbs| {
+            // The last argument is a group. Since it's None,
+            // EC_KEY_parse_private_key will require the DER to name the group.
+            let key = CHeapWrapper::ec_key_parse_private_key(cbs, None)?;
+            if cbs.cbs_len() > 0 {
+                return Err(Error::new(
+                    "excess data provided after valid DER input".to_string(),
+                ));
+            }
 
-        // EVP_parse_public_key guarantees that the returned key has its group
-        // set, so this unwrap is safe.
-        let group = key.ec_key_get0_group().unwrap();
-        Ok(
-            match CurveKind::from_nid(group.ec_group_get_curve_name())? {
-                CurveKind::P256 => EcPubKeyAnyCurve::P256(EcPubKey {
-                    inner: EcKey::from_EC_KEY(key.clone())?,
-                }),
-                CurveKind::P384 => EcPubKeyAnyCurve::P384(EcPubKey {
-                    inner: EcKey::from_EC_KEY(key.clone())?,
-                }),
-                CurveKind::P521 => EcPubKeyAnyCurve::P521(EcPubKey {
-                    inner: EcKey::from_EC_KEY(key.clone())?,
-                }),
-            },
-        )
-    })
-}
-
-/// Parses a private key in DER format with any curve.
-///
-/// `parse_private_key_der_any_curve` is like [`parse_private_key_der`], but it
-/// accepts any [`PCurve`] rather than a particular, static curve.
-///
-/// Since `parse_private_key_der` takes a [`PrivateKey`] type argument, and
-/// [`EcPrivKey`] requires a static [`PCurve`] type parameter,
-/// `parse_private_key_der` can only be called when the curve is known ahead of
-/// time. `parse_private_key_der_any_curve`, on the other hand, accepts any
-/// curve. It returns an [`EcPrivKeyAnyCurve`], which is an enum of keys over
-/// the three supported curves.
-///
-/// Because the curve is not known statically, one must be specified in the DER
-/// input.
-///
-/// [`parse_private_key_der`]: ::public::parse_private_key_der
-/// [`PrivateKey`]: ::public::PrivateKey
-#[must_use]
-pub fn parse_private_key_der_any_curve(bytes: &[u8]) -> Result<EcPrivKeyAnyCurve, Error> {
-    CStackWrapper::cbs_with_temp_buffer(bytes, |cbs| {
-        // The last argument is a group. Since it's None,
-        // EC_KEY_parse_private_key will require the DER to name the group.
-        let key = CHeapWrapper::ec_key_parse_private_key(cbs, None)?;
-        if cbs.cbs_len() > 0 {
-            return Err(Error::new("malformed DER input".to_string()));
-        }
-
-        // TODO(joshlf): Add documentation to EC_KEY_parse_private_key
-        // guaranteeing that the internal group pointer is set.
-        let group = key.ec_key_get0_group().unwrap();
-        Ok(
-            match CurveKind::from_nid(group.ec_group_get_curve_name())? {
-                CurveKind::P256 => EcPrivKeyAnyCurve::P256(EcPrivKey {
-                    inner: EcKey::from_EC_KEY(key.clone())?,
-                }),
-                CurveKind::P384 => EcPrivKeyAnyCurve::P384(EcPrivKey {
-                    inner: EcKey::from_EC_KEY(key.clone())?,
-                }),
-                CurveKind::P521 => EcPrivKeyAnyCurve::P521(EcPrivKey {
-                    inner: EcKey::from_EC_KEY(key.clone())?,
-                }),
-            },
-        )
-    })
+            // TODO(joshlf): Add documentation to EC_KEY_parse_private_key
+            // guaranteeing that the internal group pointer is set.
+            let group = key.ec_key_get0_group().unwrap();
+            Ok(
+                match CurveKind::from_nid(group.ec_group_get_curve_name())? {
+                    CurveKind::P256 => EcPrivKeyAnyCurve::P256(EcPrivKey {
+                        inner: EcKey::from_EC_KEY(key.clone())?,
+                    }),
+                    CurveKind::P384 => EcPrivKeyAnyCurve::P384(EcPrivKey {
+                        inner: EcKey::from_EC_KEY(key.clone())?,
+                    }),
+                    CurveKind::P521 => EcPrivKeyAnyCurve::P521(EcPrivKey {
+                        inner: EcKey::from_EC_KEY(key.clone())?,
+                    }),
+                },
+            )
+        })
+    }
 }
 
 /// The Elliptic Curve Digital Signature Algorithm.
@@ -544,10 +546,7 @@ mod tests {
     use super::*;
     use hash::Sha256;
     use public::ec::ecdsa::*;
-    use public::{
-        marshal_private_key_der, marshal_public_key_der, parse_private_key_der,
-        parse_public_key_der, Signature,
-    };
+    use public::Signature;
     use util::should_fail;
 
     #[test]
@@ -580,28 +579,21 @@ mod tests {
             const MESSAGE: &[u8] = &[0, 1, 2, 3, 4, 5, 6, 7];
             let key = EcPrivKey::<C>::generate().unwrap();
 
-            let parsed_key: EcPrivKey<C> =
-                parse_private_key_der(&marshal_private_key_der(&key)).unwrap();
-            let parsed_key_any_curve = unwrap_priv_any(
-                parse_private_key_der_any_curve(&marshal_private_key_der(&key)).unwrap(),
-            );
+            let parsed_key = EcPrivKey::<C>::parse_from_der(&key.marshal_to_der()).unwrap();
+            let parsed_key_any_curve =
+                unwrap_priv_any(EcPrivKeyAnyCurve::parse_from_der(&key.marshal_to_der()).unwrap());
             let pubkey = key.public();
-            let parsed_pubkey: EcPubKey<C> =
-                parse_public_key_der(&marshal_public_key_der(&pubkey)).unwrap();
-            let parsed_pubkey_any_curve = unwrap_pub_any(
-                parse_public_key_der_any_curve(&marshal_public_key_der(&pubkey)).unwrap(),
-            );
+            let parsed_pubkey = EcPubKey::<C>::parse_from_der(&pubkey.marshal_to_der()).unwrap();
+            let parsed_pubkey_any_curve =
+                unwrap_pub_any(EcPubKeyAnyCurve::parse_from_der(&pubkey.marshal_to_der()).unwrap());
 
-            fn sign_and_verify<C1: PCurve, C2: PCurve>(
-                privkey: &EcPrivKey<C1>,
-                pubkey: &EcPubKey<C2>,
-            ) where
-                Sha256: EcdsaHash<C1>,
-                Sha256: EcdsaHash<C2>,
+            fn sign_and_verify<C: PCurve>(privkey: &EcPrivKey<C>, pubkey: &EcPubKey<C>)
+            where
+                Sha256: EcdsaHash<C>,
             {
-                let sig = EcdsaSignature::<C1, Sha256>::sign(&privkey, MESSAGE).unwrap();
+                let sig = EcdsaSignature::<C, Sha256>::sign(&privkey, MESSAGE).unwrap();
                 assert!(
-                    EcdsaSignature::<C2, Sha256>::from_bytes(sig.bytes()).verify(&pubkey, MESSAGE)
+                    EcdsaSignature::<C, Sha256>::from_bytes(sig.bytes()).verify(&pubkey, MESSAGE)
                 )
             }
 
@@ -617,8 +609,8 @@ mod tests {
             sign_and_verify(&parsed_key_any_curve, &parsed_pubkey);
             sign_and_verify(&parsed_key_any_curve, &parsed_pubkey_any_curve);
 
-            let _ = marshal_public_key_der::<EcPubKey<C>>;
-            let _ = parse_public_key_der::<EcPubKey<C>>;
+            let _ = EcPubKey::<C>::marshal_to_der;
+            let _ = EcPubKey::<C>::parse_from_der;
         }
 
         macro_rules! unwrap_any_curve {
@@ -679,22 +671,22 @@ mod tests {
         // Test that invalid input is rejected.
         fn test_parse_invalid<C: PCurve>() {
             should_fail(
-                parse_private_key_der::<EcPrivKey<C>>(&[]),
+                EcPrivKey::<C>::parse_from_der(&[]),
                 "parse_private_key_der",
                 "elliptic curve routines:OPENSSL_internal:DECODE_ERROR",
             );
             should_fail(
-                parse_public_key_der::<EcPubKey<C>>(&[]),
+                EcPubKey::<C>::parse_from_der(&[]),
                 "parse_public_key_der",
                 "public key routines:OPENSSL_internal:DECODE_ERROR",
             );
             should_fail(
-                parse_private_key_der_any_curve(&[]),
+                EcPrivKeyAnyCurve::parse_from_der(&[]),
                 "parse_private_key_der_any_curve",
                 "elliptic curve routines:OPENSSL_internal:DECODE_ERROR",
             );
             should_fail(
-                parse_public_key_der_any_curve(&[]),
+                EcPubKeyAnyCurve::parse_from_der(&[]),
                 "parse_public_key_der_any_curve",
                 "public key routines:OPENSSL_internal:DECODE_ERROR",
             );
@@ -708,15 +700,15 @@ mod tests {
         // rejected.
         fn test_parse_wrong_curve<C1: PCurve, C2: PCurve>() {
             let privkey = EcPrivKey::<C1>::generate().unwrap();
-            let key_der = marshal_private_key_der(&privkey);
+            let key_der = privkey.marshal_to_der();
             should_fail(
-                parse_private_key_der::<EcPrivKey<C2>>(&key_der),
+                EcPrivKey::<C2>::parse_from_der(&key_der),
                 "parse_private_key_der",
                 "elliptic curve routines:OPENSSL_internal:GROUP_MISMATCH",
             );
-            let key_der = marshal_public_key_der(&privkey.public());
+            let key_der = privkey.public().marshal_to_der();
             should_fail(
-                parse_public_key_der::<EcPubKey<C2>>(&key_der),
+                EcPubKey::<C2>::parse_from_der(&key_der),
                 "parse_public_key_der",
                 "unexpected curve:",
             );
