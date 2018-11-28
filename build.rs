@@ -49,6 +49,12 @@ fn main() {
     let built_with = built_with(&abs_build_dir_1);
     let have_ninja = have_ninja();
     let build = |build_dir, flags: &[&str]| {
+        // Add CMAKE_POSITION_INDEPENDENT_CODE=1 to the list of CMake variables.
+        // This causes compilation with -fPIC, which is required on some
+        // platforms. This was added to address
+        // https://github.com/google/mundane/issues/3
+        let mut flags = flags.to_vec();
+        flags.push("-DCMAKE_POSITION_INDEPENDENT_CODE=1");
         fn with_ninja<'a, 'b>(flags: &'a [&'b str]) -> Vec<&'b str> {
             let mut flags = flags.to_vec();
             flags.push("-GNinja");
@@ -63,19 +69,19 @@ fn main() {
         // introducing the complexity necessary to support that use case.
         match built_with {
             Some(BuildSystem::Ninja) => {
-                run("cmake", &with_ninja(flags));
+                run("cmake", &with_ninja(&flags));
                 run("ninja", &["crypto"]);
             }
             Some(BuildSystem::Make) => {
-                run("cmake", flags);
+                run("cmake", &flags);
                 run("make", &["crypto"]);
             }
             None => {
                 if have_ninja {
-                    run("cmake", &with_ninja(flags));
+                    run("cmake", &with_ninja(&flags));
                     run("ninja", &["crypto"]);
                 } else {
-                    run("cmake", flags);
+                    run("cmake", &flags);
                     run("make", &["crypto"]);
                 }
             }
