@@ -18,6 +18,16 @@ use Error;
 pub trait PublicKey: Sealed + Sized {
     /// The type of the private component.
     type Private: PrivateKey<Public = Self>;
+
+    /// Verifies a message with this public key.
+    ///
+    /// `verify` verifies that a message was signed by the private key
+    /// corresponding to this public key. It is equivalent to
+    /// `signature.verify(self, message)`.
+    #[must_use]
+    fn verify<S: Signature<PrivateKey = Self::Private>>(&self, message: &[u8], signature: &S) -> bool {
+        signature.verify(self, message)
+    }
 }
 
 /// The private component of a public/private key pair.
@@ -28,6 +38,15 @@ pub trait PrivateKey: Sealed + Sized {
     /// Gets the public key corresponding to this private key.
     #[must_use]
     fn public(&self) -> Self::Public;
+
+    /// Signs a message with this private key.
+    ///
+    /// `sign` signs a message with this key using the signature scheme `S`. It
+    /// is equivalent to `S::sign(self, message)`.
+    #[must_use]
+    fn sign<S: Signature<PrivateKey = Self>>(&self, message: &[u8]) -> Result<S, Error> {
+        S::sign(self, message)
+    }
 }
 
 /// A public key which can be encoded as a DER object.
@@ -211,8 +230,16 @@ mod testutil {
         ) -> S {
             let sig = S::sign(key, message).unwrap();
             assert!(sig.verify(&key.public(), message));
+            // Make sure the PrivateKey::sign and PublicKey::verify convenience
+            // functions also work.
+            let sig = key.sign::<S>(message).unwrap();
+            assert!(key.public().verify(message, &sig));
             let sig2 = S::sign(&key, bytes_from_sig(&sig)).unwrap();
             assert!(!sig2.verify(&key.public(), message));
+            // Make sure the PrivateKey::sign and PublicKey::verify convenience
+            // functions also work.
+            let sig2 = key.sign::<S>(bytes_from_sig(&sig)).unwrap();
+            assert!(!key.public().verify(message, &sig2));
             sig_from_bytes(bytes_from_sig(&sig))
         }
 
