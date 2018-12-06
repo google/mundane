@@ -222,9 +222,7 @@ impl CHeapWrapper<EC_KEY> {
 
     /// The `EC_KEY_get0_group` function.
     #[must_use]
-    // TODO(joshlf): Replace with #[allow(clippy::needless_lifetimes)] once the
-    // tool_lints feature is stable
-    #[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_lifetimes))] // to be more explicit
+    #[allow(clippy::needless_lifetimes)] // to be more explicit
     pub fn ec_key_get0_group<'a>(&'a self) -> Result<CRef<'a, EC_GROUP>, BoringError> {
         // get0 doesn't increment the refcount; the lifetimes ensure that the
         // returned CRef can't outlive self

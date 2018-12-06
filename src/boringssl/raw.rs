@@ -257,9 +257,7 @@ pub unsafe fn EVP_PKEY_get1_EC_KEY(pkey: *mut EVP_PKEY) -> Result<NonNull<EC_KEY
 }
 
 #[allow(non_snake_case)]
-// TODO(joshlf): Replace with #[allow(clippy::too_many_arguments)] once the
-// tool_lints feature is stable
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::too_many_arguments))]
+#[allow(clippy::too_many_arguments)]
 #[must_use]
 pub unsafe fn EVP_PBE_scrypt(
     password: *const c_char,
@@ -292,9 +290,7 @@ pub unsafe fn EVP_PBE_scrypt(
 
 #[cfg(feature = "kdf")]
 #[allow(non_snake_case)]
-// TODO(joshlf): Replace with #[allow(clippy::too_many_arguments)] once the
-// tool_lints feature is stable
-#[cfg_attr(feature = "cargo-clippy", allow(clippy::too_many_arguments))]
+#[allow(clippy::too_many_arguments)]
 #[must_use]
 pub unsafe fn PKCS5_PBKDF2_HMAC(
     password: *const c_char,
