@@ -672,22 +672,22 @@ mod tests {
         fn test_parse_invalid<C: PCurve>() {
             should_fail(
                 EcPrivKey::<C>::parse_from_der(&[]),
-                "parse_private_key_der",
+                "EcPrivKey::parse_from_der",
                 "elliptic curve routines:OPENSSL_internal:DECODE_ERROR",
             );
             should_fail(
                 EcPubKey::<C>::parse_from_der(&[]),
-                "parse_public_key_der",
+                "EcPubKey::parse_from_der",
                 "public key routines:OPENSSL_internal:DECODE_ERROR",
             );
             should_fail(
                 EcPrivKeyAnyCurve::parse_from_der(&[]),
-                "parse_private_key_der_any_curve",
+                "EcPrivKeyAnyCurve::parse_from_der",
                 "elliptic curve routines:OPENSSL_internal:DECODE_ERROR",
             );
             should_fail(
                 EcPubKeyAnyCurve::parse_from_der(&[]),
-                "parse_public_key_der_any_curve",
+                "EcPubKeyAnyCurve::parse_from_der",
                 "public key routines:OPENSSL_internal:DECODE_ERROR",
             );
         }
@@ -703,13 +703,13 @@ mod tests {
             let key_der = privkey.marshal_to_der();
             should_fail(
                 EcPrivKey::<C2>::parse_from_der(&key_der),
-                "parse_private_key_der",
+                "EcPrivKey::parse_from_der",
                 "elliptic curve routines:OPENSSL_internal:GROUP_MISMATCH",
             );
             let key_der = privkey.public().marshal_to_der();
             should_fail(
                 EcPubKey::<C2>::parse_from_der(&key_der),
-                "parse_public_key_der",
+                "EcPubKey::parse_from_der",
                 "unexpected curve:",
             );
         }

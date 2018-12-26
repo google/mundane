@@ -25,7 +25,11 @@ pub trait PublicKey: Sealed + Sized {
     /// corresponding to this public key. It is equivalent to
     /// `signature.verify(self, message)`.
     #[must_use]
-    fn verify<S: Signature<PrivateKey = Self::Private>>(&self, message: &[u8], signature: &S) -> bool {
+    fn verify<S: Signature<PrivateKey = Self::Private>>(
+        &self,
+        message: &[u8],
+        signature: &S,
+    ) -> bool {
         signature.verify(self, message)
     }
 }
