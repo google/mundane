@@ -52,7 +52,7 @@ pub unsafe trait CNew: Sealed {
     /// Returns a new, constructed, heap-allocated object, or NULL on failure.
     ///
     /// This should not be called directly; instead, use `new`.
-    #[deprecated = "do not call new_raw directly; instead, call new"]
+    #[deprecated(note = "do not call new_raw directly; instead, call new")]
     unsafe fn new_raw() -> *mut Self;
 
     /// Returns a new, constructed, heap-allocated object, or `None` on failure.
