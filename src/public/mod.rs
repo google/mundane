@@ -22,16 +22,16 @@ pub trait PublicKey: Sealed + Sized {
 
     /// Verifies a message with this public key.
     ///
-    /// `verify` verifies that a message was signed by the private key
+    /// `is_valid` verifies that a message was signed by the private key
     /// corresponding to this public key. It is equivalent to
-    /// `signature.verify(self, message)`.
+    /// `signature.is_valid(self, message)`.
     #[must_use]
-    fn verify<S: Signature<PrivateKey = Self::Private>>(
+    fn is_valid<S: Signature<PrivateKey = Self::Private>>(
         &self,
         message: &[u8],
         signature: &S,
     ) -> bool {
-        signature.verify(self, message)
+        signature.is_valid(self, message)
     }
 }
 
@@ -175,10 +175,10 @@ pub trait Signature: Sealed + Sized {
     ///
     /// The input to this function is always a message, never a digest. If a
     /// signature scheme calls for hashing a message and signing the hash
-    /// digest, `verify` is responsible for both hashing and verifying the
+    /// digest, `is_valid` is responsible for both hashing and verifying the
     /// digest.
     #[must_use]
-    fn verify(&self, key: &<Self::PrivateKey as PrivateKey>::Public, message: &[u8]) -> bool;
+    fn is_valid(&self, key: &<Self::PrivateKey as PrivateKey>::Public, message: &[u8]) -> bool;
 }
 
 mod inner {
@@ -238,17 +238,17 @@ mod testutil {
             bytes_from_sig: G,
         ) -> S {
             let sig = S::sign(key, message).unwrap();
-            assert!(sig.verify(&key.public(), message));
+            assert!(sig.is_valid(&key.public(), message));
             // Make sure the PrivateKey::sign and PublicKey::verify convenience
             // functions also work.
             let sig = key.sign::<S>(message).unwrap();
-            assert!(key.public().verify(message, &sig));
+            assert!(key.public().is_valid(message, &sig));
             let sig2 = S::sign(&key, bytes_from_sig(&sig)).unwrap();
-            assert!(!sig2.verify(&key.public(), message));
+            assert!(!sig2.is_valid(&key.public(), message));
             // Make sure the PrivateKey::sign and PublicKey::verify convenience
             // functions also work.
             let sig2 = key.sign::<S>(bytes_from_sig(&sig)).unwrap();
-            assert!(!key.public().verify(message, &sig2));
+            assert!(!key.public().is_valid(message, &sig2));
             sig_from_bytes(bytes_from_sig(&sig))
         }
 

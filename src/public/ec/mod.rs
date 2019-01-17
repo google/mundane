@@ -450,7 +450,7 @@ pub mod ecdsa {
             &self.bytes[..self.len]
         }
 
-        fn is_valid(&self) -> bool {
+        fn has_content(&self) -> bool {
             self.len != 0
         }
 
@@ -474,8 +474,8 @@ pub mod ecdsa {
             Ok(sig)
         }
 
-        fn verify(&self, key: &EcPubKey<C>, message: &[u8]) -> bool {
-            if !self.is_valid() {
+        fn is_valid(&self, key: &EcPubKey<C>, message: &[u8]) -> bool {
+            if !self.has_content() {
                 // see comment on EcdsaSignature::len for why we do this
                 return false;
             }
@@ -532,8 +532,8 @@ pub mod ecdsa {
         fn test_invalid_signature() {
             fn test_is_invalid(sig: &EcdsaSignature<P256, Sha256>) {
                 assert_eq!(sig.len, 0);
-                assert!(!sig.is_valid());
-                assert!(!sig.verify(&EcPrivKey::<P256>::generate().unwrap().public(), &[],));
+                assert!(!sig.has_content());
+                assert!(!sig.is_valid(&EcPrivKey::<P256>::generate().unwrap().public(), &[],));
             }
             test_is_invalid(&EcdsaSignature::from_bytes(&[0; MAX_SIGNATURE_LEN + 1]));
             test_is_invalid(&EcdsaSignature::from_bytes(&[]));
@@ -593,7 +593,7 @@ mod tests {
             {
                 let sig = EcdsaSignature::<C, Sha256>::sign(&privkey, MESSAGE).unwrap();
                 assert!(
-                    EcdsaSignature::<C, Sha256>::from_bytes(sig.bytes()).verify(&pubkey, MESSAGE)
+                    EcdsaSignature::<C, Sha256>::from_bytes(sig.bytes()).is_valid(&pubkey, MESSAGE)
                 )
             }
 
