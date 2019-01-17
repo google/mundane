@@ -226,7 +226,7 @@ impl<B: RsaKeyBits> Debug for RsaPrivKey<B> {
 /// An RSA public key whose bit length is unknown at compile time.
 ///
 /// An `RsaPubKeyAnyBits` is an enum of [`RsaPubKey`]s over all supported bit
-/// lengths. It is returned from [`parse_public_key_der_any_bits`].
+/// lengths. It is returned from [`RsaPubKeyAnyBits::parse_from_der`].
 #[allow(missing_docs)]
 #[derive(Debug)]
 pub enum RsaPubKeyAnyBits {
@@ -286,7 +286,7 @@ impl RsaPubKeyAnyBits {
 /// An RSA private key whose bit length is unknown at compile time.
 ///
 /// An `RsaPrivKeyAnyBits` is an enum of [`RsaPrivKey`]s over all supported bit
-/// lengths. It is returned from [`parse_private_key_der_any_bits`].
+/// lengths. It is returned from [`RsaPrivKeyAnyBits::parse_from_der`].
 #[allow(missing_docs)]
 #[derive(Debug)]
 pub enum RsaPrivKeyAnyBits {
