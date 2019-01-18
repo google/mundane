@@ -166,7 +166,7 @@ impl Signature for Ed25519Signature {
         Ok(Ed25519Signature::sign_ed25519(key, message))
     }
 
-    fn verify(&self, key: &Ed25519PubKey, message: &[u8]) -> bool {
+    fn is_valid(&self, key: &Ed25519PubKey, message: &[u8]) -> bool {
         ed25519_verify(message, &self.sig, &key.key)
     }
 }
