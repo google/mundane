@@ -281,10 +281,7 @@ impl<'a, C> CRef<'a, C> {
     /// ever be sent to other threads so long as this `CRef` exists.
     #[must_use]
     pub unsafe fn new(obj: NonNull<C>) -> CRef<'a, C> {
-        CRef {
-            obj,
-            _lifetime: PhantomData,
-        }
+        CRef { obj, _lifetime: PhantomData }
     }
 
     #[must_use]
@@ -315,10 +312,7 @@ impl<C: CDestruct> CStackWrapper<C> {
     /// called on `obj` when this `CStackWrapper` is dropped.
     #[must_use]
     pub unsafe fn new(obj: C) -> CStackWrapper<C> {
-        CStackWrapper {
-            obj,
-            _no_sync: PhantomData,
-        }
+        CStackWrapper { obj, _no_sync: PhantomData }
     }
 
     #[must_use]
@@ -346,10 +340,7 @@ impl<C: CInit + CDestruct> Default for CStackWrapper<C> {
         unsafe {
             let mut obj: C = mem::uninitialized();
             C::init(&mut obj);
-            CStackWrapper {
-                obj,
-                _no_sync: PhantomData,
-            }
+            CStackWrapper { obj, _no_sync: PhantomData }
         }
     }
 }

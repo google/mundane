@@ -50,10 +50,7 @@ mod inner {
             // BN_set_u64 can only fail due to OOM.
             e.bn_set_u64(boringssl::RSA_F4.into()).unwrap();
             key.rsa_generate_key_ex(B::BITS.try_into().unwrap(), &e.as_c_ref())?;
-            Ok(RsaKey {
-                key,
-                _marker: PhantomData,
-            })
+            Ok(RsaKey { key, _marker: PhantomData })
         }
 
         /// Creates an `RsaKey` from a BoringSSL `RSA`.
@@ -62,10 +59,7 @@ mod inner {
         #[allow(non_snake_case)]
         pub fn from_RSA(key: CHeapWrapper<boringssl::RSA>) -> Result<RsaKey<B>, Error> {
             B::validate_bits(key.rsa_bits())?;
-            Ok(RsaKey {
-                key,
-                _marker: PhantomData,
-            })
+            Ok(RsaKey { key, _marker: PhantomData })
         }
     }
 
@@ -188,9 +182,7 @@ impl<B: RsaKeyBits> RsaPrivKey<B> {
     /// Generates a new private key.
     #[must_use]
     pub fn generate() -> Result<RsaPrivKey<B>, Error> {
-        Ok(RsaPrivKey {
-            inner: RsaKey::generate()?,
-        })
+        Ok(RsaPrivKey { inner: RsaKey::generate()? })
     }
 }
 
@@ -211,9 +203,7 @@ impl<B: RsaKeyBits> PrivateKey for RsaPrivKey<B> {
     type Public = RsaPubKey<B>;
 
     fn public(&self) -> RsaPubKey<B> {
-        RsaPubKey {
-            inner: self.inner.clone(),
-        }
+        RsaPubKey { inner: self.inner.clone() }
     }
 }
 
@@ -256,27 +246,25 @@ impl RsaPubKeyAnyBits {
             let mut evp_pkey = CHeapWrapper::evp_parse_public_key(cbs)?;
             let key = evp_pkey.evp_pkey_get1_rsa()?;
             if cbs.cbs_len() > 0 {
-                return Err(Error::new(
-                    "excess data provided after valid DER input".to_string(),
-                ));
+                return Err(Error::new("excess data provided after valid DER input".to_string()));
             }
 
             Ok(match key.rsa_bits().try_into().unwrap() {
-                B2048::BITS => RsaPubKeyAnyBits::B2048(RsaPubKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
-                B3072::BITS => RsaPubKeyAnyBits::B3072(RsaPubKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
-                B4096::BITS => RsaPubKeyAnyBits::B4096(RsaPubKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
-                B6144::BITS => RsaPubKeyAnyBits::B6144(RsaPubKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
-                B8192::BITS => RsaPubKeyAnyBits::B8192(RsaPubKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
+                B2048::BITS => {
+                    RsaPubKeyAnyBits::B2048(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
+                B3072::BITS => {
+                    RsaPubKeyAnyBits::B3072(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
+                B4096::BITS => {
+                    RsaPubKeyAnyBits::B4096(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
+                B6144::BITS => {
+                    RsaPubKeyAnyBits::B6144(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
+                B8192::BITS => {
+                    RsaPubKeyAnyBits::B8192(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
                 bits => return Err(Error::new(format!("unsupported bit length: {}", bits))),
             })
         })
@@ -327,27 +315,25 @@ impl RsaPrivKeyAnyBits {
         CStackWrapper::cbs_with_temp_buffer(bytes, |cbs| {
             let key = CHeapWrapper::rsa_parse_private_key(cbs)?;
             if cbs.cbs_len() > 0 {
-                return Err(Error::new(
-                    "excess data provided after valid DER input".to_string(),
-                ));
+                return Err(Error::new("excess data provided after valid DER input".to_string()));
             }
 
             Ok(match key.rsa_bits().try_into().unwrap() {
-                B2048::BITS => RsaPrivKeyAnyBits::B2048(RsaPrivKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
-                B3072::BITS => RsaPrivKeyAnyBits::B3072(RsaPrivKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
-                B4096::BITS => RsaPrivKeyAnyBits::B4096(RsaPrivKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
-                B6144::BITS => RsaPrivKeyAnyBits::B6144(RsaPrivKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
-                B8192::BITS => RsaPrivKeyAnyBits::B8192(RsaPrivKey {
-                    inner: RsaKey::from_RSA(key.clone())?,
-                }),
+                B2048::BITS => {
+                    RsaPrivKeyAnyBits::B2048(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
+                B3072::BITS => {
+                    RsaPrivKeyAnyBits::B3072(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
+                B4096::BITS => {
+                    RsaPrivKeyAnyBits::B4096(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
+                B6144::BITS => {
+                    RsaPrivKeyAnyBits::B6144(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
+                B8192::BITS => {
+                    RsaPrivKeyAnyBits::B8192(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                }
                 bits => return Err(Error::new(format!("unsupported bit length: {}", bits))),
             })
         })

@@ -107,9 +107,7 @@ pub(crate) mod insecure_hmac_sha1 {
         #[must_use]
         #[deprecated(note = "HMAC-SHA1 is considered insecure")]
         pub fn insecure_new(key: &[u8]) -> InsecureHmacSha1 {
-            InsecureHmacSha1 {
-                hmac: Hmac::new(key),
-            }
+            InsecureHmacSha1 { hmac: Hmac::new(key) }
         }
 
         /// INSECURE: Adds bytes to the HMAC-SHA1.

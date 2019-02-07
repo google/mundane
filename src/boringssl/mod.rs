@@ -302,14 +302,7 @@ pub fn ecdsa_sign(
 #[must_use]
 pub fn ecdsa_verify(digest: &[u8], sig: &[u8], key: &CHeapWrapper<EC_KEY>) -> bool {
     unsafe {
-        ECDSA_verify(
-            0,
-            digest.as_ptr(),
-            digest.len(),
-            sig.as_ptr(),
-            sig.len(),
-            key.as_const(),
-        )
+        ECDSA_verify(0, digest.as_ptr(), digest.len(), sig.as_ptr(), sig.len(), key.as_const())
     }
 }
 
@@ -325,10 +318,7 @@ pub fn ed25519_keypair() -> [u8; ED25519_PRIVATE_KEY_LEN as usize] {
     let mut public_unused = [0u8; ED25519_PUBLIC_KEY_LEN as usize];
     let mut private = [0u8; ED25519_PRIVATE_KEY_LEN as usize];
     unsafe {
-        ED25519_keypair(
-            (&mut public_unused[..]).as_mut_ptr(),
-            (&mut private[..]).as_mut_ptr(),
-        )
+        ED25519_keypair((&mut public_unused[..]).as_mut_ptr(), (&mut private[..]).as_mut_ptr())
     };
     private
 }
@@ -537,12 +527,7 @@ impl CStackWrapper<HMAC_CTX> {
         unsafe {
             let mut ctx = mem::uninitialized();
             HMAC_CTX_init(&mut ctx);
-            HMAC_Init_ex(
-                &mut ctx,
-                key.as_ptr() as *const c_void,
-                key.len(),
-                md.as_const(),
-            )?;
+            HMAC_Init_ex(&mut ctx, key.as_ptr() as *const c_void, key.len(), md.as_const())?;
             Ok(CStackWrapper::new(ctx))
         }
     }
@@ -725,13 +710,7 @@ pub fn crypto_memcmp(a: &[u8], b: &[u8]) -> bool {
     if a.len() != b.len() {
         return false;
     }
-    unsafe {
-        CRYPTO_memcmp(
-            a.as_ptr() as *const c_void,
-            b.as_ptr() as *const c_void,
-            a.len(),
-        ) == 0
-    }
+    unsafe { CRYPTO_memcmp(a.as_ptr() as *const c_void, b.as_ptr() as *const c_void, a.len()) == 0 }
 }
 
 /// The `RAND_bytes` function.
@@ -799,12 +778,7 @@ fn get_error_stack_trace() -> Vec<String> {
     }
 
     let mut stack_trace = Vec::new();
-    unsafe {
-        ERR_print_errors_cb(
-            Some(error_callback),
-            &mut stack_trace as *mut _ as *mut c_void,
-        )
-    };
+    unsafe { ERR_print_errors_cb(Some(error_callback), &mut stack_trace as *mut _ as *mut c_void) };
     stack_trace
 }
 

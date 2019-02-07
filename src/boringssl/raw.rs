@@ -76,12 +76,7 @@ pub unsafe fn ED25519_sign(
 ) -> Result<(), BoringError> {
     one_or_err(
         "ED25519_sign",
-        ffi::ED25519_sign(
-            out as *mut u8,
-            message,
-            message_len,
-            private_key as *const u8,
-        ),
+        ffi::ED25519_sign(out as *mut u8, message, message_len, private_key as *const u8),
     )
 }
 
@@ -93,12 +88,8 @@ pub unsafe fn ED25519_verify(
     signature: *const [u8; 64],
     public_key: *const [u8; 32],
 ) -> bool {
-    match ffi::ED25519_verify(
-        message,
-        message_len,
-        signature as *const u8,
-        public_key as *const u8,
-    ) {
+    match ffi::ED25519_verify(message, message_len, signature as *const u8, public_key as *const u8)
+    {
         0 => false,
         1 => true,
         // ED25519_verify promises to only return 0 or 1
@@ -131,10 +122,7 @@ evp_digest!(EVP_sha512);
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn EC_GROUP_new_by_curve_name(nid: c_int) -> Result<NonNull<EC_GROUP>, BoringError> {
-    ptr_or_err(
-        "EC_GROUP_new_by_curve_name",
-        ffi::EC_GROUP_new_by_curve_name(nid),
-    )
+    ptr_or_err("EC_GROUP_new_by_curve_name", ffi::EC_GROUP_new_by_curve_name(nid))
 }
 
 // ec_key.h
@@ -167,10 +155,7 @@ pub unsafe fn EC_KEY_marshal_private_key(
     key: *const EC_KEY,
     enc_flags: c_uint,
 ) -> Result<(), BoringError> {
-    one_or_err(
-        "EC_KEY_marshal_private_key",
-        ffi::EC_KEY_marshal_private_key(cbb, key, enc_flags),
-    )
+    one_or_err("EC_KEY_marshal_private_key", ffi::EC_KEY_marshal_private_key(cbb, key, enc_flags))
 }
 
 #[allow(non_snake_case)]
@@ -179,10 +164,7 @@ pub unsafe fn EC_KEY_parse_private_key(
     cbs: *mut CBS,
     group: *const EC_GROUP,
 ) -> Result<NonNull<EC_KEY>, BoringError> {
-    ptr_or_err(
-        "EC_KEY_parse_private_key",
-        ffi::EC_KEY_parse_private_key(cbs, group),
-    )
+    ptr_or_err("EC_KEY_parse_private_key", ffi::EC_KEY_parse_private_key(cbs, group))
 }
 
 #[allow(non_snake_case)]
@@ -206,10 +188,7 @@ pub unsafe fn ECDSA_sign(
     sig_len: *mut c_uint,
     key: *const EC_KEY,
 ) -> Result<(), BoringError> {
-    one_or_err(
-        "ECDSA_sign",
-        ffi::ECDSA_sign(type_, digest, digest_len, sig, sig_len, key),
-    )
+    one_or_err("ECDSA_sign", ffi::ECDSA_sign(type_, digest, digest_len, sig, sig_len, key))
 }
 
 #[allow(non_snake_case)]
@@ -244,10 +223,7 @@ pub unsafe fn EVP_marshal_public_key(
     cbb: *mut CBB,
     key: *const EVP_PKEY,
 ) -> Result<(), BoringError> {
-    one_or_err(
-        "EVP_marshal_public_key",
-        ffi::EVP_marshal_public_key(cbb, key),
-    )
+    one_or_err("EVP_marshal_public_key", ffi::EVP_marshal_public_key(cbb, key))
 }
 
 #[allow(non_snake_case)]
@@ -262,10 +238,7 @@ pub unsafe fn EVP_PKEY_assign_EC_KEY(
     pkey: *mut EVP_PKEY,
     key: *mut EC_KEY,
 ) -> Result<(), BoringError> {
-    one_or_err(
-        "EVP_PKEY_assign_EC_KEY",
-        ffi::EVP_PKEY_assign_EC_KEY(pkey, key),
-    )
+    one_or_err("EVP_PKEY_assign_EC_KEY", ffi::EVP_PKEY_assign_EC_KEY(pkey, key))
 }
 
 #[allow(non_snake_case)]
@@ -365,10 +338,7 @@ pub unsafe fn HMAC_Init_ex(
     key_len: usize,
     md: *const EVP_MD,
 ) -> Result<(), BoringError> {
-    one_or_err(
-        "HMAC_Init_ex",
-        ffi::HMAC_Init_ex(ctx, key, key_len, md, ptr::null_mut()),
-    )
+    one_or_err("HMAC_Init_ex", ffi::HMAC_Init_ex(ctx, key, key_len, md, ptr::null_mut()))
 }
 
 #[allow(non_snake_case)]
@@ -407,19 +377,13 @@ pub unsafe fn RSA_generate_key_ex(
     e: *const BIGNUM,
     cb: *mut BN_GENCB,
 ) -> Result<(), BoringError> {
-    one_or_err(
-        "RSA_generate_key_ex",
-        ffi::RSA_generate_key_ex(rsa, bits, e, cb),
-    )
+    one_or_err("RSA_generate_key_ex", ffi::RSA_generate_key_ex(rsa, bits, e, cb))
 }
 
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn RSA_marshal_private_key(cbb: *mut CBB, rsa: *const RSA) -> Result<(), BoringError> {
-    one_or_err(
-        "RSA_marshal_private_key",
-        ffi::RSA_marshal_private_key(cbb, rsa),
-    )
+    one_or_err("RSA_marshal_private_key", ffi::RSA_marshal_private_key(cbb, rsa))
 }
 
 #[allow(non_snake_case)]

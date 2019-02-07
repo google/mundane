@@ -58,10 +58,7 @@ mod inner {
             // EC_KEY_set_group only errors if there's already a group set
             key.ec_key_set_group(&C::group()).unwrap();
             key.ec_key_generate_key()?;
-            Ok(EcKey {
-                key,
-                _marker: PhantomData,
-            })
+            Ok(EcKey { key, _marker: PhantomData })
         }
 
         /// Creates an `EcKey` from a BoringSSL `EC_KEY`.
@@ -76,10 +73,7 @@ mod inner {
             // ec_key_get0_group returns the EC_KEY's internal group pointer,
             // which is guaranteed to be set by the caller.
             C::validate_group(key.ec_key_get0_group().unwrap())?;
-            Ok(EcKey {
-                key,
-                _marker: PhantomData,
-            })
+            Ok(EcKey { key, _marker: PhantomData })
         }
     }
 
@@ -185,9 +179,7 @@ impl<C: PCurve> EcPrivKey<C> {
     /// Generates a new private key.
     #[must_use]
     pub fn generate() -> Result<EcPrivKey<C>, Error> {
-        Ok(EcPrivKey {
-            inner: EcKey::generate()?,
-        })
+        Ok(EcPrivKey { inner: EcKey::generate()? })
     }
 }
 
@@ -208,9 +200,7 @@ impl<C: PCurve> PrivateKey for EcPrivKey<C> {
     type Public = EcPubKey<C>;
 
     fn public(&self) -> EcPubKey<C> {
-        EcPubKey {
-            inner: self.inner.clone(),
-        }
+        EcPubKey { inner: self.inner.clone() }
     }
 }
 
@@ -254,27 +244,23 @@ impl EcPubKeyAnyCurve {
             let mut evp_pkey = CHeapWrapper::evp_parse_public_key(cbs)?;
             let key = evp_pkey.evp_pkey_get1_ec_key()?;
             if cbs.cbs_len() > 0 {
-                return Err(Error::new(
-                    "excess data provided after valid DER input".to_string(),
-                ));
+                return Err(Error::new("excess data provided after valid DER input".to_string()));
             }
 
             // EVP_parse_public_key guarantees that the returned key has its group
             // set, so this unwrap is safe.
             let group = key.ec_key_get0_group().unwrap();
-            Ok(
-                match CurveKind::from_nid(group.ec_group_get_curve_name())? {
-                    CurveKind::P256 => EcPubKeyAnyCurve::P256(EcPubKey {
-                        inner: EcKey::from_EC_KEY(key.clone())?,
-                    }),
-                    CurveKind::P384 => EcPubKeyAnyCurve::P384(EcPubKey {
-                        inner: EcKey::from_EC_KEY(key.clone())?,
-                    }),
-                    CurveKind::P521 => EcPubKeyAnyCurve::P521(EcPubKey {
-                        inner: EcKey::from_EC_KEY(key.clone())?,
-                    }),
-                },
-            )
+            Ok(match CurveKind::from_nid(group.ec_group_get_curve_name())? {
+                CurveKind::P256 => {
+                    EcPubKeyAnyCurve::P256(EcPubKey { inner: EcKey::from_EC_KEY(key.clone())? })
+                }
+                CurveKind::P384 => {
+                    EcPubKeyAnyCurve::P384(EcPubKey { inner: EcKey::from_EC_KEY(key.clone())? })
+                }
+                CurveKind::P521 => {
+                    EcPubKeyAnyCurve::P521(EcPubKey { inner: EcKey::from_EC_KEY(key.clone())? })
+                }
+            })
         })
     }
 }
@@ -324,27 +310,23 @@ impl EcPrivKeyAnyCurve {
             // EC_KEY_parse_private_key will require the DER to name the group.
             let key = CHeapWrapper::ec_key_parse_private_key(cbs, None)?;
             if cbs.cbs_len() > 0 {
-                return Err(Error::new(
-                    "excess data provided after valid DER input".to_string(),
-                ));
+                return Err(Error::new("excess data provided after valid DER input".to_string()));
             }
 
             // TODO(joshlf): Add documentation to EC_KEY_parse_private_key
             // guaranteeing that the internal group pointer is set.
             let group = key.ec_key_get0_group().unwrap();
-            Ok(
-                match CurveKind::from_nid(group.ec_group_get_curve_name())? {
-                    CurveKind::P256 => EcPrivKeyAnyCurve::P256(EcPrivKey {
-                        inner: EcKey::from_EC_KEY(key.clone())?,
-                    }),
-                    CurveKind::P384 => EcPrivKeyAnyCurve::P384(EcPrivKey {
-                        inner: EcKey::from_EC_KEY(key.clone())?,
-                    }),
-                    CurveKind::P521 => EcPrivKeyAnyCurve::P521(EcPrivKey {
-                        inner: EcKey::from_EC_KEY(key.clone())?,
-                    }),
-                },
-            )
+            Ok(match CurveKind::from_nid(group.ec_group_get_curve_name())? {
+                CurveKind::P256 => {
+                    EcPrivKeyAnyCurve::P256(EcPrivKey { inner: EcKey::from_EC_KEY(key.clone())? })
+                }
+                CurveKind::P384 => {
+                    EcPrivKeyAnyCurve::P384(EcPrivKey { inner: EcKey::from_EC_KEY(key.clone())? })
+                }
+                CurveKind::P521 => {
+                    EcPrivKeyAnyCurve::P521(EcPrivKey { inner: EcKey::from_EC_KEY(key.clone())? })
+                }
+            })
         })
     }
 }
@@ -455,11 +437,7 @@ pub mod ecdsa {
         }
 
         fn empty() -> EcdsaSignature<C, H> {
-            EcdsaSignature {
-                bytes: [0u8; MAX_SIGNATURE_LEN],
-                len: 0,
-                _marker: PhantomData,
-            }
+            EcdsaSignature { bytes: [0u8; MAX_SIGNATURE_LEN], len: 0, _marker: PhantomData }
         }
     }
 

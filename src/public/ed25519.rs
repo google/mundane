@@ -59,9 +59,7 @@ impl Ed25519PrivKey {
     /// Generates a new private key.
     #[must_use]
     pub fn generate() -> Ed25519PrivKey {
-        Ed25519PrivKey {
-            key: ed25519_keypair(),
-        }
+        Ed25519PrivKey { key: ed25519_keypair() }
     }
 
     /// Constructs a new private key from a key pair.

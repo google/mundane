@@ -68,9 +68,7 @@ pub trait DerPublicKey: PublicKey + self::inner::DerKey {
         self.boring().pkey_assign(&mut evp_pkey);
         // cbb_new can only fail due to OOM
         let mut cbb = CStackWrapper::cbb_new(64).unwrap();
-        evp_pkey
-            .evp_marshal_public_key(&mut cbb)
-            .expect("failed to marshal public key");
+        evp_pkey.evp_marshal_public_key(&mut cbb).expect("failed to marshal public key");
         cbb.cbb_with_data(<[u8]>::to_vec)
     }
 
@@ -121,9 +119,7 @@ pub trait DerPrivateKey: PrivateKey + self::inner::DerKey {
     fn marshal_to_der(&self) -> Vec<u8> {
         // cbb_new can only fail due to OOM
         let mut cbb = CStackWrapper::cbb_new(64).unwrap();
-        self.boring()
-            .marshal_private_key(&mut cbb)
-            .expect("failed to marshal private key");
+        self.boring().marshal_private_key(&mut cbb).expect("failed to marshal private key");
         cbb.cbb_with_data(<[u8]>::to_vec)
     }
 
@@ -209,7 +205,7 @@ mod inner {
 
         fn boring(&self) -> &Self::Boring;
 
-        fn from_boring(Self::Boring) -> Self;
+        fn from_boring(boring: Self::Boring) -> Self;
     }
 }
 
@@ -256,13 +252,8 @@ mod testutil {
         // the next message to test, and repeat many times.
         let mut msg = Vec::new();
         for _ in 0..16 {
-            msg = bytes_from_sig(&sign_and_verify(
-                key,
-                &msg,
-                &sig_from_bytes,
-                &bytes_from_sig,
-            ))
-            .to_vec();
+            msg = bytes_from_sig(&sign_and_verify(key, &msg, &sig_from_bytes, &bytes_from_sig))
+                .to_vec();
         }
     }
 }

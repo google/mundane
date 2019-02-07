@@ -156,11 +156,7 @@ pub mod scrypt {
             r: u64,
             p: u64,
         ) -> ScryptHash {
-            ScryptHash {
-                hash,
-                salt,
-                params: ScryptParams { N, r, p },
-            }
+            ScryptHash { hash, salt, params: ScryptParams { N, r, p } }
         }
 
         /// Gets the hash.
@@ -204,11 +200,7 @@ pub mod scrypt {
             &mut hash,
         )
         .unwrap();
-        ScryptHash {
-            hash,
-            salt,
-            params: *params,
-        }
+        ScryptHash { hash, salt, params: *params }
     }
 
     /// Verifies a password against an scrypt hash.
@@ -247,12 +239,7 @@ pub mod scrypt {
                 let mut params = SCRYPT_PARAMS_LAPTOP;
                 params.N /= 4;
                 let hash = scrypt_generate(&pass, &params);
-                assert!(
-                    scrypt_verify(&pass, &hash),
-                    "pass: {:?}, hash: {:?}",
-                    &pass[..],
-                    hash
-                );
+                assert!(scrypt_verify(&pass, &hash), "pass: {:?}, hash: {:?}", &pass[..], hash);
             }
         }
     }

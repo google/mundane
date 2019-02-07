@@ -130,10 +130,7 @@ impl CurveKind {
             self::NID_P256 => Ok(CurveKind::P256),
             self::NID_P384 => Ok(CurveKind::P384),
             self::NID_P521 => Ok(CurveKind::P521),
-            _ => Err(Error::new(format!(
-                "unsupported curve: {}",
-                nid_name(nid).unwrap()
-            ))),
+            _ => Err(Error::new(format!("unsupported curve: {}", nid_name(nid).unwrap()))),
         }
     }
 }

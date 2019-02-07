@@ -144,9 +144,7 @@ impl Default for Sha384 {
         // The Default impl for CStackWrapper<boringssl::SHA512_CTX> initializes
         // it for a SHA-512 hash. Thus, we have to implement Default manually
         // instead of deriving Default on Sha384.
-        Sha384 {
-            ctx: CStackWrapper::sha384_new(),
-        }
+        Sha384 { ctx: CStackWrapper::sha384_new() }
     }
 }
 
