@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- `public::rsa` now supports RSA-PKCS1v1.5 signing (behind the `rsa-pkcs1v15`
+  feature flag).
+
+### Fixed
 - `build.rs` no longer respects `$GOPATH`, instead it always uses the
   `go.mod` from the vendored boringssl.
 

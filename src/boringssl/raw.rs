@@ -392,6 +392,20 @@ pub unsafe fn RSA_parse_private_key(cbs: *mut CBS) -> Result<NonNull<RSA>, Borin
     ptr_or_err("RSA_parse_private_key", ffi::RSA_parse_private_key(cbs))
 }
 
+#[cfg(feature = "rsa-pkcs1v15")]
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn RSA_sign(
+    hash_nid: c_int,
+    in_: *const u8,
+    in_len: c_uint,
+    out: *mut u8,
+    out_len: *mut c_uint,
+    key: *mut RSA,
+) -> Result<(), BoringError> {
+    one_or_err("RSA_sign", ffi::RSA_sign(hash_nid, in_, in_len, out, out_len, key))
+}
+
 #[allow(non_snake_case)]
 #[must_use]
 pub unsafe fn RSA_sign_pss_mgf1(
@@ -416,6 +430,25 @@ pub unsafe fn RSA_sign_pss_mgf1(
 pub unsafe fn RSA_size(key: *const RSA) -> Result<NonZeroUsize, BoringError> {
     NonZeroUsize::new(ffi::RSA_size(key).try_into().unwrap_abort())
         .ok_or_else(|| BoringError::consume_stack("RSA_size"))
+}
+
+#[cfg(feature = "rsa-pkcs1v15")]
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn RSA_verify(
+    hash_nid: c_int,
+    msg: *const u8,
+    msg_len: usize,
+    sig: *const u8,
+    sig_len: usize,
+    rsa: *mut RSA,
+) -> bool {
+    match ffi::RSA_verify(hash_nid, msg, msg_len, sig, sig_len, rsa) {
+        0 => false,
+        1 => true,
+        // RSA_verify promises to only return 0 or 1
+        _ => unreachable_abort!(),
+    }
 }
 
 #[allow(non_snake_case)]

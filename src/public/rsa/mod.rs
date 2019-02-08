@@ -359,21 +359,59 @@ impl RsaPrivKeyAnyBits {
 /// An `RsaSignatureScheme` defines how to compute an RSA signature. The primary
 /// detail defined by a signature scheme is how to perform padding.
 ///
-/// `RsaSignatureScheme` is implemented by [`RsaPss`].
+/// `RsaSignatureScheme` is implemented by [`RsaPss`] and, if the `rsa-pkcs1v15`
+/// feature is enabled, [`RsaPkcs1v15`].
 pub trait RsaSignatureScheme:
     Sized + Copy + Clone + Default + Display + Debug + self::inner::RsaSignatureScheme
 {
 }
 
-/// The RSA-PSS signature scheme.
+/// The RSA-PKCS1v1.5 signature scheme.
+///
+/// This signature scheme is old, and considered less secure than RSA-PSS. It
+/// should only be used for compatibility with legacy systems - never in new
+/// systems!
+#[cfg(feature = "rsa-pkcs1v15")]
 #[derive(Copy, Clone, Default, Debug, Eq, PartialEq, Hash)]
-pub struct RsaPss;
+pub struct RsaPkcs1v15;
+
+#[cfg(feature = "rsa-pkcs1v15")]
+impl Display for RsaPkcs1v15 {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        write!(f, "RSA-PKCS1v1.5")
+    }
+}
+
+#[cfg(feature = "rsa-pkcs1v15")]
+impl Sealed for RsaPkcs1v15 {}
+#[cfg(feature = "rsa-pkcs1v15")]
+impl RsaSignatureScheme for RsaPkcs1v15 {}
+
+#[cfg(feature = "rsa-pkcs1v15")]
+impl self::inner::RsaSignatureScheme for RsaPkcs1v15 {
+    fn sign<B: RsaKeyBits, H: Hasher>(
+        rsa: &RsaKey<B>,
+        digest: &[u8],
+        sig: &mut [u8],
+    ) -> Result<usize, BoringError> {
+        // NOTE: rsa_sign will panic if sig is not large enough to hold the
+        // largest possible signature, as RSA_sign has this as a precondition.
+        boringssl::rsa_sign(H::nid(), digest, sig, &rsa.key)
+    }
+    fn verify<B: RsaKeyBits, H: Hasher>(rsa: &RsaKey<B>, digest: &[u8], sig: &[u8]) -> bool {
+        boringssl::rsa_verify(H::nid(), digest, sig, &rsa.key)
+    }
+}
 
 impl Display for RsaPss {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         write!(f, "RSA-PSS")
     }
 }
+
+/// The RSA-PSS signature scheme.
+#[derive(Copy, Clone, Default, Debug, Eq, PartialEq, Hash)]
+pub struct RsaPss;
 
 impl Sealed for RsaPss {}
 impl RsaSignatureScheme for RsaPss {}
@@ -384,9 +422,12 @@ impl self::inner::RsaSignatureScheme for RsaPss {
         digest: &[u8],
         sig: &mut [u8],
     ) -> Result<usize, BoringError> {
-        // This is not needed for memory safety, but is an important security
-        // and correctness check, as passing a too-short signature would result
-        // in the signature being truncated.
+        // We assert here (and not in the RSA-PKCS1v1.5 implementation) because,
+        // while our rsa_sign wrapper (which implements PKCS1v1.5) performs this
+        // assertion itself (for safety reasons), our rsa_sign_pss_mgf1 wrapper
+        // does not. This assertion is an important security and correctness
+        // check as well, as passing a too-short signature would result in the
+        // signature being truncated.
         assert!(sig.len() >= rsa.key.rsa_size().unwrap().get());
         // A salt_len of -1 means to use a salt of the same length as the hash
         // output. This is a reasonable default and, for bit lengths larger than
@@ -567,6 +608,13 @@ mod tests {
                 unwrap_pub_any(RsaPubKeyAnyBits::parse_from_der(&pubkey.marshal_to_der()).unwrap());
 
             fn sign_and_verify<B: RsaKeyBits>(privkey: &RsaPrivKey<B>, pubkey: &RsaPubKey<B>) {
+                #[cfg(feature = "rsa-pkcs1v15")]
+                {
+                    let sig =
+                        RsaSignature::<B, RsaPkcs1v15, Sha256>::sign(&privkey, MESSAGE).unwrap();
+                    assert!(RsaSignature::<B, RsaPkcs1v15, Sha256>::from_bytes(sig.bytes())
+                        .is_valid(&pubkey, MESSAGE));
+                }
                 let sig = RsaSignature::<B, RsaPss, Sha256>::sign(&privkey, MESSAGE).unwrap();
                 assert!(RsaSignature::<B, RsaPss, Sha256>::from_bytes(sig.bytes())
                     .is_valid(&pubkey, MESSAGE));
@@ -745,6 +793,12 @@ mod tests {
         fn test<B: RsaKeyBits>() {
             use public::testutil::test_signature_smoke;
             let key = generate_rsa_key::<B>();
+            #[cfg(feature = "rsa-pkcs1v15")]
+            test_signature_smoke(
+                &key,
+                RsaSignature::<_, RsaPkcs1v15, Sha256>::from_bytes,
+                RsaSignature::bytes,
+            );
             test_signature_smoke(
                 &key,
                 RsaSignature::<_, RsaPss, Sha256>::from_bytes,
@@ -765,6 +819,11 @@ mod tests {
             assert_eq!(sig.len, 0);
             assert!(!sig.is_valid_format());
             assert!(!sig.is_valid(&generate_rsa_key::<B2048>().public(), &[],));
+        }
+        #[cfg(feature = "rsa-pkcs1v15")]
+        {
+            test_is_invalid::<RsaPkcs1v15>(&RsaSignature::from_bytes(&[0; MAX_SIGNATURE_LEN + 1]));
+            test_is_invalid::<RsaPkcs1v15>(&RsaSignature::from_bytes(&[]));
         }
         test_is_invalid::<RsaPss>(&RsaSignature::from_bytes(&[0; MAX_SIGNATURE_LEN + 1]));
         test_is_invalid::<RsaPss>(&RsaSignature::from_bytes(&[]));

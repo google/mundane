@@ -112,6 +112,8 @@ use boringssl::raw::{
     RAND_bytes, RSA_bits, RSA_generate_key_ex, RSA_marshal_private_key, RSA_parse_private_key,
     RSA_sign_pss_mgf1, RSA_size, RSA_verify_pss_mgf1, SHA384_Init,
 };
+#[cfg(feature = "rsa-pkcs1v15")]
+use boringssl::raw::{RSA_sign, RSA_verify};
 
 impl CStackWrapper<BIGNUM> {
     /// The `BN_set_u64` function.
@@ -612,6 +614,45 @@ impl CHeapWrapper<RSA> {
     }
 }
 
+/// The `RSA_sign` function.
+///
+/// # Panics
+///
+/// `rsa_sign` panics if `sig` is shorter than the minimum required signature
+/// size given by `rsa_size`.
+#[cfg(feature = "rsa-pkcs1v15")]
+pub fn rsa_sign(
+    hash_nid: c_int,
+    digest: &[u8],
+    sig: &mut [u8],
+    key: &CHeapWrapper<RSA>,
+) -> Result<usize, BoringError> {
+    unsafe {
+        // If we call RSA_sign with sig.len() < min_size, it will invoke UB.
+        let min_size = key.rsa_size().unwrap_abort();
+        assert_abort!(sig.len() >= min_size.get());
+
+        let mut sig_len: c_uint = 0;
+        RSA_sign(
+            hash_nid,
+            digest.as_ptr(),
+            digest.len().try_into().unwrap_abort(),
+            sig.as_mut_ptr(),
+            &mut sig_len,
+            // RSA_sign does not mutate its argument but, for
+            // backwards-compatibility reasons, continues to take a normal
+            // (non-const) pointer.
+            key.as_const() as *mut _,
+        )?;
+
+        // RSA_sign guarantees that it only needs RSA_size bytes for the
+        // signature.
+        let sig_len = sig_len.try_into().unwrap_abort();
+        assert_abort!(sig_len <= min_size.get());
+        Ok(sig_len)
+    }
+}
+
 /// The `rsa_sign_pss_mgf1` function.
 #[must_use]
 pub fn rsa_sign_pss_mgf1(
@@ -644,6 +685,25 @@ pub fn rsa_sign_pss_mgf1(
         let rsa_size = key.rsa_size().unwrap_abort();
         assert_abort!(sig_len <= rsa_size.get());
         Ok(sig_len)
+    }
+}
+
+/// The `RSA_verify` function.
+#[must_use]
+#[cfg(feature = "rsa-pkcs1v15")]
+pub fn rsa_verify(hash_nid: c_int, digest: &[u8], sig: &[u8], key: &CHeapWrapper<RSA>) -> bool {
+    unsafe {
+        RSA_verify(
+            hash_nid,
+            digest.as_ptr(),
+            digest.len(),
+            sig.as_ptr(),
+            sig.len(),
+            // RSA_verify does not mutate its argument but, for
+            // backwards-compatibility reasons, continues to take a normal
+            // (non-const) pointer.
+            key.as_const() as *mut _,
+        )
     }
 }
 

@@ -7,8 +7,8 @@
 //! WARNING: INSECURE CRYPTOGRAPHIC OPERATIONS.
 //!
 //! This module contains cryptographic operations which are considered insecure.
-//! These operations should only be used for compatibility with legacy systems,
-//! but never in new systems!
+//! These operations should only be used for compatibility with legacy systems -
+//! never in new systems!
 
 #![deprecated(note = "insecure cryptographic operations")]
 

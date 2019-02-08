@@ -1014,6 +1014,17 @@ extern "C" {
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {
+    #[link_name = "__RUST_MUNDANE_0_3_0_RSA_sign"]
+    pub fn RSA_sign(
+        hash_nid: ::std::os::raw::c_int,
+        in_: *const u8,
+        in_len: ::std::os::raw::c_uint,
+        out: *mut u8,
+        out_len: *mut ::std::os::raw::c_uint,
+        rsa: *mut RSA,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
     #[link_name = "__RUST_MUNDANE_0_3_0_RSA_sign_pss_mgf1"]
     pub fn RSA_sign_pss_mgf1(
         rsa: *mut RSA,
@@ -1025,6 +1036,17 @@ extern "C" {
         md: *const EVP_MD,
         mgf1_md: *const EVP_MD,
         salt_len: ::std::os::raw::c_int,
+    ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "__RUST_MUNDANE_0_3_0_RSA_verify"]
+    pub fn RSA_verify(
+        hash_nid: ::std::os::raw::c_int,
+        msg: *const u8,
+        msg_len: usize,
+        sig: *const u8,
+        sig_len: usize,
+        rsa: *mut RSA,
     ) -> ::std::os::raw::c_int;
 }
 extern "C" {

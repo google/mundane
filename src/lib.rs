@@ -26,17 +26,18 @@
 //!
 //! **Features**
 //!
-//! | Name         | Description              |
-//! | ------------ | ------------------------ |
-//! | `kdf`        | Key derivation functions |
-//! | `rand-bytes` | Generate random bytes    |
+//! | Name           | Description              |
+//! | -------------- | ------------------------ |
+//! | `kdf`          | Key derivation functions |
+//! | `rand-bytes`   | Generate random bytes    |
+//! | `rsa-pkcs1v15` | RSA-PKCS1v1.5 signatures |
 //!
 //! # Insecure Operations
 //!
 //! Mundane supports one additional feature not listed in the previous section:
 //! `insecure`. This enables some cryptographic primitives which are today
 //! considered insecure. These should only be used for compatibility with legacy
-//! systems, but never in new systems! When the `insecure` feature is used, an
+//! systems - never in new systems! When the `insecure` feature is used, an
 //! `insecure` module is added to the crate root. All insecure primitives are
 //! exposed through this module.
 
