@@ -337,6 +337,8 @@ pub mod ecdsa {
     use std::marker::PhantomData;
 
     use boringssl;
+    #[cfg(feature = "experimental-sha512-ec")]
+    use hash::Sha512;
     use hash::{inner::Digest, Hasher, Sha256, Sha384};
     use public::{
         ec::{EcPrivKey, EcPubKey, PCurve, P256, P384, P521},
@@ -361,6 +363,12 @@ pub mod ecdsa {
     impl EcdsaHash<P384> for Sha384 {}
     impl EcdsaHash<P521> for Sha256 {}
     impl EcdsaHash<P521> for Sha384 {}
+
+    #[cfg(feature = "experimental-sha512-ec")]
+    impl EcdsaHash<P384> for Sha512 {}
+
+    #[cfg(feature = "experimental-sha512-ec")]
+    impl EcdsaHash<P521> for Sha512 {}
 
     // The maximum length of an ECDSA signature over P-521. Since this isn't
     // exposed in the API, we can increase later if we add support for curves
@@ -504,6 +512,19 @@ pub mod ecdsa {
                 EcdsaSignature::<_, Sha384>::from_bytes,
                 EcdsaSignature::bytes,
             );
+            #[cfg(feature = "experimental-sha512-ec")]
+            {
+                test_signature_smoke(
+                    &p384,
+                    EcdsaSignature::<_, Sha512>::from_bytes,
+                    EcdsaSignature::bytes,
+                );
+                test_signature_smoke(
+                    &p521,
+                    EcdsaSignature::<_, Sha512>::from_bytes,
+                    EcdsaSignature::bytes,
+                );
+            }
         }
 
         #[test]

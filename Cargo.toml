@@ -31,3 +31,4 @@ exclude = [
 insecure = []
 kdf = []
 rand-bytes = []
+experimental-sha512-ec = []
