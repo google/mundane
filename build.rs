@@ -109,11 +109,7 @@ fn main() {
 
     build(
         &abs_build_dir_2,
-        &[
-            &abs_boringssl_src,
-            &cmake_version_flag,
-            "-DBORINGSSL_PREFIX_SYMBOLS=../symbols.txt",
-        ],
+        &[&abs_boringssl_src, &cmake_version_flag, "-DBORINGSSL_PREFIX_SYMBOLS=../symbols.txt"],
     );
 
     // NOTE(joshlf): We symlink rather than renaming so that the BoringSSL build
@@ -233,11 +229,7 @@ fn have_make() -> bool {
 // `have` checks whether `name` is installed by running it with the provided
 // `args`. It must exist successfully.
 fn have(name: &str, args: &[&str]) -> bool {
-    Command::new(name)
-        .args(args)
-        .output()
-        .map(|output| output.status.success())
-        .unwrap_or(false)
+    Command::new(name).args(args).output().map(|output| output.status.success()).unwrap_or(false)
 }
 
 enum BuildSystem {
@@ -248,9 +240,7 @@ enum BuildSystem {
 // Checks which build tool was used for the previous build.
 fn built_with(abs_dir: &str) -> Option<BuildSystem> {
     let is_file = |file| {
-        fs::metadata(format!("{}/{}", abs_dir, file))
-            .map(|meta| meta.is_file())
-            .unwrap_or(false)
+        fs::metadata(format!("{}/{}", abs_dir, file)).map(|meta| meta.is_file()).unwrap_or(false)
     };
     if is_file("build.ninja") {
         Some(BuildSystem::Ninja)

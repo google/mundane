@@ -98,11 +98,9 @@ RSA_generate_key_ex|\
 RSA_marshal_private_key|\
 RSA_new|\
 RSA_parse_private_key|\
-RSA_sign|\
 RSA_sign_pss_mgf1|\
 RSA_size|\
 RSA_up_ref|\
-RSA_verify|\
 RSA_verify_pss_mgf1|\
 SHA1_Init|\
 SHA1_Update|\

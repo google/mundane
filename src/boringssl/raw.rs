@@ -394,9 +394,48 @@ pub unsafe fn RSA_parse_private_key(cbs: *mut CBS) -> Result<NonNull<RSA>, Borin
 
 #[allow(non_snake_case)]
 #[must_use]
+pub unsafe fn RSA_sign_pss_mgf1(
+    rsa: *mut RSA,
+    out_len: *mut usize,
+    out: *mut u8,
+    max_out: usize,
+    in_: *const u8,
+    in_len: usize,
+    md: *const EVP_MD,
+    mgf1_md: *const EVP_MD,
+    salt_len: c_int,
+) -> Result<(), BoringError> {
+    one_or_err(
+        "RSA_sign_pss_mgf1",
+        ffi::RSA_sign_pss_mgf1(rsa, out_len, out, max_out, in_, in_len, md, mgf1_md, salt_len),
+    )
+}
+
+#[allow(non_snake_case)]
+#[must_use]
 pub unsafe fn RSA_size(key: *const RSA) -> Result<NonZeroUsize, BoringError> {
     NonZeroUsize::new(ffi::RSA_size(key).try_into().unwrap_abort())
         .ok_or_else(|| BoringError::consume_stack("RSA_size"))
+}
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn RSA_verify_pss_mgf1(
+    rsa: *mut RSA,
+    msg: *const u8,
+    msg_len: usize,
+    md: *const EVP_MD,
+    mgf1_md: *const EVP_MD,
+    salt_len: c_int,
+    sig: *const u8,
+    sig_len: usize,
+) -> bool {
+    match ffi::RSA_verify_pss_mgf1(rsa, msg, msg_len, md, mgf1_md, salt_len, sig, sig_len) {
+        0 => false,
+        1 => true,
+        // RSA_verify_pss_mgf1 promises to only return 0 or 1
+        _ => unreachable_abort!(),
+    }
 }
 
 // sha.h

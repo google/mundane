@@ -110,7 +110,7 @@ use boringssl::raw::{
     EVP_PKEY_assign_RSA, EVP_PKEY_get1_EC_KEY, EVP_PKEY_get1_RSA, EVP_marshal_public_key,
     EVP_parse_public_key, HMAC_CTX_init, HMAC_Final, HMAC_Init_ex, HMAC_Update, HMAC_size,
     RAND_bytes, RSA_bits, RSA_generate_key_ex, RSA_marshal_private_key, RSA_parse_private_key,
-    RSA_size, SHA384_Init,
+    RSA_sign_pss_mgf1, RSA_size, RSA_verify_pss_mgf1, SHA384_Init,
 };
 
 impl CStackWrapper<BIGNUM> {
@@ -609,6 +609,68 @@ impl CHeapWrapper<RSA> {
     #[must_use]
     pub fn rsa_size(&self) -> Result<NonZeroUsize, BoringError> {
         unsafe { RSA_size(self.as_const()) }
+    }
+}
+
+/// The `rsa_sign_pss_mgf1` function.
+#[must_use]
+pub fn rsa_sign_pss_mgf1(
+    key: &CHeapWrapper<RSA>,
+    sig: &mut [u8],
+    digest: &[u8],
+    md: &CRef<'static, EVP_MD>,
+    mgf1_md: Option<&CRef<'static, EVP_MD>>,
+    salt_len: c_int,
+) -> Result<usize, BoringError> {
+    unsafe {
+        let mut sig_len: usize = 0;
+        RSA_sign_pss_mgf1(
+            // RSA_sign_pss_mgf1 does not mutate its argument but, for
+            // backwards-compatibility reasons, continues to take a normal
+            // (non-const) pointer.
+            key.as_const() as *mut _,
+            &mut sig_len,
+            sig.as_mut_ptr(),
+            sig.len(),
+            digest.as_ptr(),
+            digest.len(),
+            md.as_const(),
+            mgf1_md.map(CRef::as_const).unwrap_or(ptr::null()),
+            salt_len,
+        )?;
+
+        // RSA_sign_pss_mgf1 guarantees that it only needs RSA_size bytes for
+        // the signature.
+        let rsa_size = key.rsa_size().unwrap_abort();
+        assert_abort!(sig_len <= rsa_size.get());
+        Ok(sig_len)
+    }
+}
+
+/// The `RSA_verify_pss_mgf1` function.
+#[must_use]
+pub fn rsa_verify_pss_mgf1(
+    key: &CHeapWrapper<RSA>,
+    digest: &[u8],
+    md: &CRef<'static, EVP_MD>,
+    mgf1_md: Option<&CRef<'static, EVP_MD>>,
+    salt_len: c_int,
+    sig: &[u8],
+) -> bool {
+    unsafe {
+        RSA_verify_pss_mgf1(
+            // RSA_verify_pss_mgf1 does not mutate its argument but, for
+            // backwards-compatibility reasons, continues to take a normal
+            // (non-const) pointer.
+            key.as_const() as *mut _,
+            digest.as_ptr(),
+            digest.len(),
+            md.as_const(),
+            mgf1_md.map(CRef::as_const).unwrap_or(ptr::null()),
+            salt_len,
+            sig.as_ptr(),
+            sig.len(),
+        )
     }
 }
 
