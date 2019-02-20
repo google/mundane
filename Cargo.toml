@@ -8,7 +8,7 @@
 name = "mundane"
 # remember to update html_root_url
 # TODO(joshlf): use version-sync crate to test this in CI
-version = "0.2.2"
+version = "0.3.0"
 authors = ["Joshua Liebow-Feeser <joshlf@google.com>"]
 description = "Cryptography which is easy to use and hard to misuse"
 readme = "README.md"
