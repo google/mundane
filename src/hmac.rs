@@ -116,7 +116,6 @@ pub(crate) mod insecure_hmac_sha1 {
         ///
         /// HMAC-SHA1 is considered insecure, and should only be used for
         /// compatibility with legacy applications.
-        #[must_use]
         #[deprecated(note = "HMAC-SHA1 is considered insecure")]
         pub fn insecure_update(&mut self, bytes: &[u8]) {
             self.hmac.update(bytes);
@@ -139,6 +138,9 @@ pub(crate) mod insecure_hmac_sha1 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(feature = "insecure")]
+    #[allow(deprecated)]
+    use super::insecure_hmac_sha1::InsecureHmacSha1;
     #[cfg(feature = "insecure")]
     #[allow(deprecated)]
     use hash::insecure_sha1_digest::InsecureSha1Digest;
@@ -166,12 +168,23 @@ mod tests {
                 }
                 assert_eq!(&hmac.finish(), digest, "input: {:?}", input);
             }
+
             #[cfg(feature = "insecure")]
             #[allow(deprecated)]
             test::<InsecureSha1>(case.input, &case.sha1);
             test::<Sha256>(case.input, &case.sha256);
             test::<Sha384>(case.input, &case.sha384);
             test::<Sha512>(case.input, &case.sha512);
+
+            #[cfg(feature = "insecure")]
+            #[allow(deprecated)]
+            {
+                let mut hmac = InsecureHmacSha1::insecure_new(TEST_KEY);
+                for b in case.input {
+                    hmac.insecure_update(&[*b]);
+                }
+                assert_eq!(&hmac.insecure_finish(), &case.sha1, "input: {:?}", case.input);
+            }
         }
 
         macro_rules! test_case {
