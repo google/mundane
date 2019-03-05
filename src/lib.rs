@@ -46,11 +46,6 @@
 // just in case we forget to add #[forbid(unsafe_code)] on new module
 // definitions
 #![deny(unsafe_code)]
-// NOTE(joshlf): This is the only feature we allow. It keeps us from working on
-// stable Rust, but that's justified by the fact that it's important for
-// ensuring the soundness of our unsafe code. Once this feature is stabilized,
-// we will promise to work on stable going forward.
-#![feature(try_from)]
 
 #[macro_use]
 mod macros;
