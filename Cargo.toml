@@ -27,6 +27,7 @@ exclude = [
     "boringssl/boringssl/crypto/cipher_extra/test/*"
 ]
 
+# If you edit this list, make sure to update test.sh!
 [features]
 insecure = []
 kdf = []

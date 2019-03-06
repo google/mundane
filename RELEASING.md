@@ -26,7 +26,7 @@ This document describes steps to follow when releasing a new version of Mundane.
     verify that all of the version numbers have been updated correctly
 5. Run the `boringssl/test_symbol_conflict.sh` script, and ensure that it
    passes.
-6. Make sure `cargo test --all-features` passes.
+6. Make sure `./test.sh` passes.
 7. Update `CHANGELOG.md` - move any unreleased changes into a new section for
    the new version.
 8. Dry run by running `cargo publish --dry-run --allow-dirty`.
