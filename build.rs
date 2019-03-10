@@ -93,13 +93,15 @@ fn main() {
     // 'go run' requires that we're cd'd into a subdirectory of the Go module
     // root in order for Go modules to work
     let orig = env::current_dir().expect("could not get current directory");
-    env::set_current_dir(&format!("{}/util", &abs_boringssl_src))
+    env::set_current_dir(&format!("{}", &abs_boringssl_src))
         .expect("could not set current directory");
+    // GOPATH should not be respected; we want the borringssl go.mod.
+    env::remove_var("GOPATH");
     run(
         "go",
         &[
             "run",
-            "read_symbols.go",
+            "util/read_symbols.go",
             "-out",
             &abs_symbol_file,
             &format!("{}/crypto/libcrypto.a", &abs_build_dir_1),

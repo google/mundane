@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- `build.rs` no longer respects `$GOPATH`, instead it always uses the
+  `go.mod` from the vendored boringssl.
+
 ## [0.3.0] - 2019-02-20
 
 ### Added
