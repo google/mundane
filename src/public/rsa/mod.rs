@@ -119,6 +119,7 @@ mod inner {
         use std::mem;
 
         use super::*;
+        use public::rsa::tests::generate_rsa_key;
         use public::rsa::{B2048, B3072, B4096, B6144, B8192};
 
         #[test]
@@ -133,7 +134,7 @@ mod inner {
             // refcount enough.
 
             fn test<B: RsaKeyBits>() {
-                let key = RsaKey::<B>::generate().unwrap();
+                let key = generate_rsa_key::<B>().inner;
                 for i in 0..8 {
                     // make i clones and then free them all
                     let mut keys = Vec::new();
@@ -493,17 +494,47 @@ impl<B: RsaKeyBits, S: RsaSignatureScheme, H: Hasher> Debug for RsaSignature<B, 
 
 #[cfg(test)]
 mod tests {
+    use lazy_static::lazy_static;
+
     use super::*;
     use hash::Sha256;
     use util::should_fail;
 
+    // Generating RSA keys is very expensive. In order to make these tests run
+    // more quickly, we generate a key of a given bit size only once, and then
+    // re-use that key in subsequent tests.
+    //
+    // Since RsaPrivKey doesn't implement Send, we can't store it directly in a
+    // lazy_static. Instead, we store its DER encoding, and parse in
+    // generate_rsa_key.
+    lazy_static! {
+        static ref B2048_KEY: Vec<u8> = RsaPrivKey::<B2048>::generate().unwrap().marshal_to_der();
+        static ref B3072_KEY: Vec<u8> = RsaPrivKey::<B3072>::generate().unwrap().marshal_to_der();
+        static ref B4096_KEY: Vec<u8> = RsaPrivKey::<B4096>::generate().unwrap().marshal_to_der();
+        static ref B6144_KEY: Vec<u8> = RsaPrivKey::<B6144>::generate().unwrap().marshal_to_der();
+        static ref B8192_KEY: Vec<u8> = RsaPrivKey::<B8192>::generate().unwrap().marshal_to_der();
+    }
+
+    // also used by inner::tests
+    pub(super) fn generate_rsa_key<B: RsaKeyBits>() -> RsaPrivKey<B> {
+        let bytes = match B::BITS {
+            2048 => B2048_KEY.as_slice(),
+            3072 => B3072_KEY.as_slice(),
+            4096 => B4096_KEY.as_slice(),
+            6144 => B6144_KEY.as_slice(),
+            8192 => B8192_KEY.as_slice(),
+            _ => unreachable!(),
+        };
+        RsaPrivKey::parse_from_der(bytes).unwrap()
+    }
+
     #[test]
     fn test_generate() {
-        RsaPrivKey::<B2048>::generate().unwrap();
-        RsaPrivKey::<B3072>::generate().unwrap();
-        RsaPrivKey::<B4096>::generate().unwrap();
-        RsaPrivKey::<B6144>::generate().unwrap();
-        RsaPrivKey::<B8192>::generate().unwrap();
+        generate_rsa_key::<B2048>();
+        generate_rsa_key::<B3072>();
+        generate_rsa_key::<B4096>();
+        generate_rsa_key::<B6144>();
+        generate_rsa_key::<B8192>();
     }
 
     #[test]
@@ -525,7 +556,7 @@ mod tests {
             unwrap_pub_any: G,
         ) {
             const MESSAGE: &[u8] = &[0, 1, 2, 3, 4, 5, 6, 7];
-            let key = RsaPrivKey::<B>::generate().unwrap();
+            let key = generate_rsa_key::<B>();
 
             let parsed_key = RsaPrivKey::<B>::parse_from_der(&key.marshal_to_der()).unwrap();
             let parsed_key_any_bits =
@@ -671,7 +702,7 @@ mod tests {
         // Test that, when a particular bit size is expected, other bit sizes are
         // rejected.
         fn test_parse_wrong_bit_size<B1: RsaKeyBits, B2: RsaKeyBits>() {
-            let privkey = RsaPrivKey::<B1>::generate().unwrap();
+            let privkey = generate_rsa_key::<B1>();
             let key_der = privkey.marshal_to_der();
             should_fail(
                 RsaPrivKey::<B2>::parse_from_der(&key_der),
@@ -713,7 +744,7 @@ mod tests {
     fn test_signature_smoke() {
         fn test<B: RsaKeyBits>() {
             use public::testutil::test_signature_smoke;
-            let key = RsaPrivKey::<B>::generate().unwrap();
+            let key = generate_rsa_key::<B>();
             test_signature_smoke(
                 &key,
                 RsaSignature::<_, RsaPss, Sha256>::from_bytes,
@@ -733,7 +764,7 @@ mod tests {
         fn test_is_invalid<S: RsaSignatureScheme>(sig: &RsaSignature<B2048, S, Sha256>) {
             assert_eq!(sig.len, 0);
             assert!(!sig.is_valid_format());
-            assert!(!sig.is_valid(&RsaPrivKey::<B2048>::generate().unwrap().public(), &[],));
+            assert!(!sig.is_valid(&generate_rsa_key::<B2048>().public(), &[],));
         }
         test_is_invalid::<RsaPss>(&RsaSignature::from_bytes(&[0; MAX_SIGNATURE_LEN + 1]));
         test_is_invalid::<RsaPss>(&RsaSignature::from_bytes(&[]));

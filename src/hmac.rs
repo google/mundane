@@ -137,10 +137,10 @@ pub(crate) mod insecure_hmac_sha1 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     #[cfg(feature = "insecure")]
     #[allow(deprecated)]
     use super::insecure_hmac_sha1::InsecureHmacSha1;
+    use super::*;
     #[cfg(feature = "insecure")]
     #[allow(deprecated)]
     use hash::insecure_sha1_digest::InsecureSha1Digest;
