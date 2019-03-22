@@ -48,9 +48,6 @@
 // definitions
 #![deny(unsafe_code)]
 
-#[cfg(test)]
-extern crate lazy_static;
-
 #[macro_use]
 mod macros;
 
