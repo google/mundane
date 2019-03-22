@@ -8,7 +8,12 @@
 
 set -eu
 
-FEATURES="insecure kdf rand-bytes rsa-pkcs1v15 experimental-sha512-ec"
+FEATURES="insecure
+kdf
+rand-bytes
+rsa-pkcs1v15
+rsa-test-generate-large-keys
+experimental-sha512-ec"
 
 # Test with each feature individually
 for features in $FEATURES run-symbol-conflict-test; do

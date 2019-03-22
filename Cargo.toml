@@ -29,10 +29,15 @@ exclude = [
 
 # If you edit this list, make sure to update test.sh!
 [features]
+default = ["rsa-test-generate-large-keys"]
 insecure = []
 kdf = []
 rand-bytes = []
 rsa-pkcs1v15 = []
+# Run the RSA `test_generate` test with larger key sizes. This is disabled in
+# some configurations because large RSA keys take a long time to generate. This
+# feature only affects tests, so shouldn't be relevant to most consumers.
+rsa-test-generate-large-keys = []
 experimental-sha512-ec = []
 # Run the `boringssl/test_symbol_conflict.sh` test during `cargo test`. This is
 # disabled by default because the test takes a long time to run.
