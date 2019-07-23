@@ -66,10 +66,10 @@ would be very brittle and error-prone. Instead, we discover the symbols
 dynamically at build time by doing a two-phase build.
 
 In the first phase, we build BoringSSL as normal, with no symbol prefixing.
-Then, using a Go program provided by BoringSSL, we scrape the list of symbols
-from the build artifacts. Using this list, we run the build again - the second
-phase - this time using BoringSSL's symbol prefixing feature. We use the
-artifacts from the second build when performing the final Rust build.
+Then, the build script scrapes the list of symbols from the build artifacts.
+Using this list, we run the build again - the second phase - this time using
+BoringSSL's symbol prefixing feature. We use the artifacts from the second
+build when performing the final Rust build.
 
 ### Library names
 

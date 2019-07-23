@@ -6,9 +6,11 @@
 
 // This build script is responsible for building BoringSSL with the appropriate
 // symbol prefix. See boringssl/README.md for details.
+mod obj;
 
 use std::env;
 use std::fs;
+use std::io::Write;
 use std::process::{Command, Stdio};
 
 // Relative to CARGO_MANIFEST_DIR
@@ -90,24 +92,35 @@ fn main() {
 
     build(&abs_build_dir_1, &[&abs_boringssl_src]);
 
-    // 'go run' requires that we're cd'd into a subdirectory of the Go module
-    // root in order for Go modules to work
-    let orig = env::current_dir().expect("could not get current directory");
-    env::set_current_dir(&format!("{}", &abs_boringssl_src))
-        .expect("could not set current directory");
-    // GOPATH should not be respected; we want the borringssl go.mod.
-    env::remove_var("GOPATH");
-    run(
-        "go",
-        &[
-            "run",
-            "util/read_symbols.go",
-            "-out",
-            &abs_symbol_file,
-            &format!("{}/crypto/libcrypto.a", &abs_build_dir_1),
-        ],
-    );
-    env::set_current_dir(orig).expect("could not set current directory");
+    let mut symbols = obj::exported_symbols(&format!("{}/crypto/libcrypto.a", &abs_build_dir_1))
+        .unwrap_or_else(|e| panic!("failed to read list of symbols exported by libcrypto: {}", e));
+    if symbols.is_empty() {
+        panic!("no exported symbols found in libcrypto");
+    }
+    // Inlined functions from the compiler or runtime, should not be prefixed.
+    let symbol_blacklist = [
+        // Present in Windows builds.
+        "__local_stdio_printf_options",
+        "__local_stdio_scanf_options",
+        "_vscprintf",
+        "_vscprintf_l",
+        "_vsscanf_l",
+        "_xmm",
+        "sscanf",
+        "vsnprintf",
+        // Present in Linux and macOS builds.
+        "sdallocx",
+    ];
+    for blacklisted_symbol in &symbol_blacklist {
+        symbols.remove(*blacklisted_symbol);
+    }
+    let mut symbols_file = fs::File::create(&abs_symbol_file)
+        .expect("could not create symbols file");
+    for symbol in symbols {
+        write!(symbols_file, "{}\n", symbol).expect("write to symbols file failed");
+    }
+    // Make sure the file is fully written to disc before pasing it to BoringSSL's build system.
+    symbols_file.sync_all().expect("failed to sync the symbols file to filesystem");
 
     build(
         &abs_build_dir_2,

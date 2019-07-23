@@ -27,6 +27,10 @@ exclude = [
     "boringssl/boringssl/crypto/cipher_extra/test/*"
 ]
 
+build = "build/main.rs"
+[build-dependencies]
+goblin = "0.0.24"
+
 # If you edit this list, make sure to update test.sh!
 [features]
 default = ["rsa-test-generate-large-keys"]
