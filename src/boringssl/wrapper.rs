@@ -5,7 +5,7 @@
 // https://opensource.org/licenses/MIT.
 
 use std::marker::PhantomData;
-use std::mem;
+use std::mem::{self, MaybeUninit};
 use std::ptr::NonNull;
 
 /// A trait that can be used to ensure that users of the boringssl module can't
@@ -338,9 +338,9 @@ impl<C: CInit + CDestruct> Default for CStackWrapper<C> {
     // CStackWrapper::new).
     fn default() -> CStackWrapper<C> {
         unsafe {
-            let mut obj: C = mem::uninitialized();
-            C::init(&mut obj);
-            CStackWrapper { obj, _no_sync: PhantomData }
+            let mut obj = MaybeUninit::<C>::uninit();
+            C::init(obj.as_mut_ptr());
+            CStackWrapper { obj: obj.assume_init(), _no_sync: PhantomData }
         }
     }
 }

@@ -15,13 +15,13 @@ use self::goblin::mach;
 use std::error;
 
 /// List symbols exported by the file (expected to be either a static library or an object file).
-pub fn exported_symbols(file: &str) -> Result<BTreeSet<String>, Box<error::Error>> {
+pub fn exported_symbols(file: &str) -> Result<BTreeSet<String>, Box<dyn error::Error>> {
     let mut bytes = Vec::new();
     File::open(file)?.read_to_end(&mut bytes)?;
     binary_exported_symbols(&bytes)
 }
 
-fn binary_exported_symbols(bytes: &[u8]) -> Result<BTreeSet<String>, Box<error::Error>> {
+fn binary_exported_symbols(bytes: &[u8]) -> Result<BTreeSet<String>, Box<dyn error::Error>> {
     let mut symbols = BTreeSet::new();
     match goblin::Object::parse(bytes)? {
         goblin::Object::Archive(archive) => {

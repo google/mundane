@@ -18,6 +18,8 @@ reviews. See `CONTRIBUTING.md` for more details.
 
 ## Dependencies
 
+Rust 1.36 or newer is required.
+
 Mundane vendors a copy of the BoringSSL source, so BoringSSL does not need to be
 installed locally in order to build. However, the BoringSSL build system has the
 following dependencies:
@@ -29,7 +31,7 @@ following dependencies:
   makes compilation significantly faster; if both are present, Ninja will be
   used. On Windows, Ninja is required.
 - A C++ compiler
-- Go 1.11 or later
+- Go 1.10 or later
 - To build the x86 and x86_64 assembly, your assembler must support AVX2
   instructions and `MOVBE`. If using GNU binutils, you must have 2.22 or later.
 

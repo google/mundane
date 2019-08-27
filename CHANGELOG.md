@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Changed
 - `build.rs` implements symbol name scraping natively, and no longer relies on
   BoringSSL's `read_symbols.go`.
+- Minimum required Rust version raised to 1.36
+- Minimum required Go version lowered to 1.10
 
 ### Fixed
 - `build.rs` no longer respects `$GOPATH`, instead it always uses the
