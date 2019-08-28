@@ -10,7 +10,7 @@ set -eu
 
 FEATURES="insecure
 kdf
-rand-bytes
+bytes
 rsa-pkcs1v15
 rsa-test-generate-large-keys
 experimental-sha512-ec"
