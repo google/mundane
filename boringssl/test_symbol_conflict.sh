@@ -40,20 +40,20 @@ echo "$TMP"
 #
 
 # Update the Cargo.toml versions and names in place to be distinct
-sed -i '' -e 's/^name =.*/name = "mundane-v1"/' mundane-v1/Cargo.toml
-sed -i '' -e 's/^version =.*/version = "1.0.0"/' mundane-v1/Cargo.toml
-sed -i '' -e 's/^name =.*/name = "mundane-v2"/' mundane-v2/Cargo.toml
-sed -i '' -e 's/^version =.*/version = "2.0.0"/' mundane-v2/Cargo.toml
+sed -i'' -e 's/^name =.*/name = "mundane-v1"/' mundane-v1/Cargo.toml
+sed -i'' -e 's/^version =.*/version = "1.0.0"/' mundane-v1/Cargo.toml
+sed -i'' -e 's/^name =.*/name = "mundane-v2"/' mundane-v2/Cargo.toml
+sed -i'' -e 's/^version =.*/version = "2.0.0"/' mundane-v2/Cargo.toml
 
 # Update the link directive to use the right version number
-sed -i '' -e 's/#[link(name = "crypto_[0-9]*_[0-9]*_[0-9]*")]/#[link(name = "crypto_1_0_0")]/' mundane-v1/boringssl/boringssl.rs
-sed -i '' -e 's/#[link(name = "crypto_[0-9]*_[0-9]*_[0-9]*")]/#[link(name = "crypto_2_0_0")]/' mundane-v2/boringssl/boringssl.rs
+sed -i'' -e 's/#[link(name = "crypto_[0-9]*_[0-9]*_[0-9]*")]/#[link(name = "crypto_1_0_0")]/' mundane-v1/boringssl/boringssl.rs
+sed -i'' -e 's/#[link(name = "crypto_[0-9]*_[0-9]*_[0-9]*")]/#[link(name = "crypto_2_0_0")]/' mundane-v2/boringssl/boringssl.rs
 # Update the link_name directives to use the right version number
-sed -i '' -e 's/__RUST_MUNDANE_[0-9]*_[0-9]*_[0-9]*_/__RUST_MUNDANE_1_0_0_/' mundane-v1/boringssl/boringssl.rs
-sed -i '' -e 's/__RUST_MUNDANE_[0-9]*_[0-9]*_[0-9]*_/__RUST_MUNDANE_2_0_0_/' mundane-v2/boringssl/boringssl.rs
+sed -i'' -e 's/__RUST_MUNDANE_[0-9]*_[0-9]*_[0-9]*_/__RUST_MUNDANE_1_0_0_/' mundane-v1/boringssl/boringssl.rs
+sed -i'' -e 's/__RUST_MUNDANE_[0-9]*_[0-9]*_[0-9]*_/__RUST_MUNDANE_2_0_0_/' mundane-v2/boringssl/boringssl.rs
 # Mark the ffi module as public
-sed  -i '' -e 's/^mod ffi;$/pub mod ffi;/' mundane-v1/src/boringssl/mod.rs
-sed  -i '' -e 's/^mod ffi;$/pub mod ffi;/' mundane-v2/src/boringssl/mod.rs
+sed -i'' -e 's/^mod ffi;$/pub mod ffi;/' mundane-v1/src/boringssl/mod.rs
+sed -i'' -e 's/^mod ffi;$/pub mod ffi;/' mundane-v2/src/boringssl/mod.rs
 # Make Mundane directly expose the ffi module
 echo "pub use boringssl::ffi;" >> mundane-v1/src/lib.rs
 echo "pub use boringssl::ffi;" >> mundane-v2/src/lib.rs
