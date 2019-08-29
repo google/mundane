@@ -8,6 +8,14 @@ https://opensource.org/licenses/MIT. -->
 
 ## Cloning
 
+```shell
+git clone --recursive https://fuchsia.googlesource.com/mundane
+```
+
+Development occurs at https://fuchsia.googlesource.com/mundane, with the GitHub
+repository as a read-only mirror. See [Code reviews](#code-reviews) for details
+on how to submit changes.
+
 Mundane depends on BoringSSL, which is in a Git submodule. When cloning this
 repository, make sure to pass the `--recursive` flag to Git to also download
 this submodule.
@@ -198,7 +206,7 @@ Gerrit. Sign in with a Google account, visit [this
 link](https://fuchsia.googlesource.com/), and click the "Generate Password" link
 in the top right. You will also need to prepare your checkout to [add
 Change-Ids](https://gerrit-review.googlesource.com/Documentation/cmd-hook-commit-msg.html)
-on commit. Run:
+on commit. In the repository, run:
 
 ```
 curl -Lo .git/hooks/commit-msg https://fuchsia-review.googlesource.com/tools/hooks/commit-msg
