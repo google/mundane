@@ -109,9 +109,9 @@ use boringssl::raw::{
     EC_KEY_set_group, EC_curve_nid2nist, ED25519_keypair, ED25519_keypair_from_seed, ED25519_sign,
     ED25519_verify, ERR_print_errors_cb, EVP_PBE_scrypt, EVP_PKEY_assign_EC_KEY,
     EVP_PKEY_assign_RSA, EVP_PKEY_get1_EC_KEY, EVP_PKEY_get1_RSA, EVP_marshal_public_key,
-    EVP_parse_public_key, HMAC_CTX_init, HMAC_Final, HMAC_Init_ex, HMAC_Update, HMAC_size,
-    RAND_bytes, RSA_bits, RSA_generate_key_ex, RSA_marshal_private_key, RSA_parse_private_key,
-    RSA_sign_pss_mgf1, RSA_size, RSA_verify_pss_mgf1, SHA384_Init,
+    EVP_parse_public_key, HMAC_CTX_copy, HMAC_CTX_init, HMAC_Final, HMAC_Init_ex, HMAC_Update,
+    HMAC_size, RAND_bytes, RSA_bits, RSA_generate_key_ex, RSA_marshal_private_key,
+    RSA_parse_private_key, RSA_sign_pss_mgf1, RSA_size, RSA_verify_pss_mgf1, SHA384_Init,
 };
 #[cfg(feature = "rsa-pkcs1v15")]
 use boringssl::raw::{RSA_sign, RSA_verify};
@@ -565,6 +565,15 @@ impl CStackWrapper<HMAC_CTX> {
             HMAC_Final(self.as_mut(), out.as_mut_ptr(), &mut size).unwrap_abort();
             // Guaranteed to be the value returned by HMAC_size.
             assert_abort_eq!(out.len(), size as usize);
+        }
+    }
+
+    /// The `HMAC_CTX_copy` function.
+    pub fn hmac_ctx_copy(&self) -> Result<Self, BoringError> {
+        unsafe {
+            let mut ctx = MaybeUninit::uninit();
+            HMAC_CTX_copy(ctx.as_mut_ptr(), self.as_const())?;
+            Ok(CStackWrapper::new(ctx.assume_init()))
         }
     }
 }

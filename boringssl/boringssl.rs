@@ -913,6 +913,10 @@ extern "C" {
     #[link_name = "__RUST_MUNDANE_0_4_0_HMAC_size"]
     pub fn HMAC_size(ctx: *const HMAC_CTX) -> usize;
 }
+extern "C" {
+    #[link_name = "__RUST_MUNDANE_0_4_0_HMAC_CTX_copy"]
+    pub fn HMAC_CTX_copy(dest: *mut HMAC_CTX, src: *const HMAC_CTX) -> ::std::os::raw::c_int;
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct hmac_ctx_st {

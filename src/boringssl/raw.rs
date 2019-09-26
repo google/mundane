@@ -357,6 +357,11 @@ pub unsafe fn HMAC_Final(
     one_or_err("HMAC_Final", ffi::HMAC_Final(ctx, out, out_len))
 }
 
+#[allow(non_snake_case)]
+pub unsafe fn HMAC_CTX_copy(dest: *mut HMAC_CTX, src: *const HMAC_CTX) -> Result<(), BoringError> {
+    one_or_err("HMAC_CTX_copy", ffi::HMAC_CTX_copy(dest, src))
+}
+
 // rand.h
 
 #[allow(non_snake_case)]

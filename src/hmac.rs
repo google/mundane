@@ -48,9 +48,39 @@ impl<H: Hasher> Hmac<H> {
     }
 }
 
+// We expose `Clone` because implementing `std::hash::Hasher` is
+// useful, and forces us to expose a `fn finish(&self)`. That exposes
+// the capacity to compute a digest based on the current state and
+// keep going, so providing no way to do that using the native API
+// serves only to force users to jump through hoops.
+impl<H: Hasher> Clone for Hmac<H> {
+    fn clone(&self) -> Self {
+        Self {
+            // Can only fail due to OOM if `self` is properly initialized
+            ctx: self.ctx.hmac_ctx_copy().unwrap(),
+            _marker: PhantomData,
+        }
+    }
+}
+
 impl<H: Hasher> Debug for Hmac<H> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         write!(f, "Hmac")
+    }
+}
+
+impl<H: Hasher> std::hash::Hasher for Hmac<H> {
+    fn write(&mut self, bytes: &[u8]) {
+        self.update(bytes);
+    }
+
+    fn finish(&self) -> u64 {
+        let digest = self.clone().finish();
+        // Translate a digest to a u64 in an arbitrary reasonable way
+        let mut buf = [0; 8];
+        let len = digest.as_ref().len().min(8);
+        buf[0..len].copy_from_slice(&digest.as_ref()[0..len]);
+        u64::from_le_bytes(buf)
     }
 }
 
@@ -145,6 +175,7 @@ mod tests {
     #[allow(deprecated)]
     use hash::insecure_sha1_digest::InsecureSha1Digest;
     use hash::*;
+    use std::convert::TryInto;
 
     #[test]
     fn test_hmac() {
@@ -158,9 +189,20 @@ mod tests {
             sha512: <Sha512 as Hasher>::Digest,
         }
 
+        fn std_hash<H: Hasher>(x: &[u8]) -> u64 {
+            use std::hash::Hasher;
+            let mut hmac = Hmac::<H>::new(TEST_KEY);
+            hmac.write(x);
+            <Hmac<H> as std::hash::Hasher>::finish(&hmac)
+        }
+
         for case in TEST_CASES.iter() {
             fn test<H: Hasher>(input: &'static [u8], digest: &H::Digest) {
                 assert_eq!(&hmac::<H>(TEST_KEY, input), digest, "input: {:?}", input);
+                assert_eq!(
+                    std_hash::<H>(input),
+                    u64::from_le_bytes(digest.as_ref()[0..8].try_into().unwrap())
+                );
                 // Test that adding bytes incrementally works too.
                 let mut hmac = Hmac::<H>::new(TEST_KEY);
                 for b in input {

@@ -86,6 +86,7 @@ PKCS5_PBKDF2_HMAC|\
 EVP_PBE_scrypt|\
 HMAC_CTX_init|\
 HMAC_CTX_cleanup|\
+HMAC_CTX_copy|\
 HMAC_Init_ex|\
 HMAC_Update|\
 HMAC_Final|\
