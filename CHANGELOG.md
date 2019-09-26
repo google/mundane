@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   `constant_time_eq`.
 - `hmac::Hmac` now implements `Clone` and `std::hash::Hasher`, allowing it to be
   used with any type that implements `std::hash::Hash`.
+- `hash::Hasher` now similarly implies `Clone` and `std::hash::Hasher`.
 
 ### Changed
 - `build.rs` implements symbol name scraping natively, and no longer relies on

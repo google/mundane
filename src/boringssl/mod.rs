@@ -792,6 +792,20 @@ macro_rules! impl_hash {
     (@doc_string $s:expr) => (#[doc="The `"] #[doc=$s] #[doc="` function."]);
 }
 
+/// Implements `Clone` for a `CStackWrapper<T>`.
+///
+/// Unsound for types without no-op `CDestruct` impls, or which
+/// capture `!Sync` shared state.
+macro_rules! impl_clone {
+    ($ty: ty) => {
+        impl Clone for CStackWrapper<$ty> {
+            fn clone(&self) -> Self {
+                unsafe { CStackWrapper::new(*self.as_const()) }
+            }
+        }
+    };
+}
+
 impl_hash!(
     SHA_CTX,
     SHA_DIGEST_LENGTH,
@@ -802,6 +816,7 @@ impl_hash!(
     sha1_final,
     SHA1_Final
 );
+impl_clone!(SHA_CTX);
 impl_hash!(
     SHA256_CTX,
     SHA256_DIGEST_LENGTH,
@@ -812,6 +827,7 @@ impl_hash!(
     sha256_final,
     SHA256_Final
 );
+impl_clone!(SHA256_CTX);
 impl_hash!(
     SHA512_CTX,
     SHA384_DIGEST_LENGTH,
@@ -832,6 +848,7 @@ impl_hash!(
     sha512_final,
     SHA512_Final
 );
+impl_clone!(SHA512_CTX);
 
 /// The `CRYPTO_memcmp` function.
 ///

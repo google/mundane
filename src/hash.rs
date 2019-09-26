@@ -49,8 +49,13 @@ pub(crate) mod inner {
 }
 
 /// A cryptographic hash function.
+// We expose `Clone` because implementing `std::hash::Hasher` is
+// useful, and forces us to expose a `fn finish(&self)`. That exposes
+// the capacity to compute a digest based on the current state and
+// keep going, so providing no way to do that using the native API
+// serves only to force users to jump through hoops.
 #[must_use]
-pub trait Hasher: Default + self::inner::Hasher {
+pub trait Hasher: Default + Clone + std::hash::Hasher + self::inner::Hasher {
     /// The output digest.
     #[must_use]
     type Digest: Digest;
@@ -99,7 +104,7 @@ pub trait Digest: Eq + PartialEq + Display + Debug + Sized + self::inner::Digest
 // NOTE: InsecureSha1 is not publicly available; it is only used in HMAC-SHA1.
 #[cfg(feature = "insecure")]
 #[deprecated(note = "SHA-1 is considered insecure")]
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub(crate) struct InsecureSha1 {
     ctx: CStackWrapper<boringssl::SHA_CTX>,
 }
@@ -119,7 +124,7 @@ pub(crate) mod insecure_sha1_digest {
 }
 
 /// The SHA-256 hash function.
-#[derive(Default)]
+#[derive(Clone, Default)]
 #[must_use]
 pub struct Sha256 {
     ctx: CStackWrapper<boringssl::SHA256_CTX>,
@@ -132,6 +137,7 @@ impl_debug!(Sha256, "Sha256");
 pub struct Sha256Digest(pub(crate) [u8; boringssl::SHA256_DIGEST_LENGTH as usize]);
 
 /// The SHA-384 hash function.
+#[derive(Clone)]
 #[must_use]
 pub struct Sha384 {
     ctx: CStackWrapper<boringssl::SHA512_CTX>,
@@ -153,7 +159,7 @@ impl Default for Sha384 {
 pub struct Sha384Digest(pub(crate) [u8; boringssl::SHA384_DIGEST_LENGTH as usize]);
 
 /// The SHA-512 hash function.
-#[derive(Default)]
+#[derive(Clone, Default)]
 #[must_use]
 pub struct Sha512 {
     ctx: CStackWrapper<boringssl::SHA512_CTX>,
@@ -200,6 +206,23 @@ macro_rules! impl_hash {
             fn nid() -> ::std::os::raw::c_int {
                 use std::convert::TryInto;
                 ::boringssl::$nid.try_into().unwrap()
+            }
+        }
+        #[allow(deprecated)]
+        impl std::hash::Hasher for $name {
+            fn write(&mut self, bytes: &[u8]) {
+                self.update(bytes);
+            }
+
+            fn finish(&self) -> u64 {
+                use self::inner::Digest;
+                let digest = self.clone().finish();
+                // Translate a digest to a u64 in an arbitrary
+                // reasonable way
+                let mut buf = [0; 8];
+                let len = digest.as_ref().len().min(8);
+                buf[0..len].copy_from_slice(&digest.as_ref()[0..len]);
+                u64::from_le_bytes(buf)
             }
         }
         #[allow(deprecated)]
@@ -295,6 +318,7 @@ mod tests {
     #[cfg(feature = "insecure")]
     use super::insecure_sha1_digest::*;
     use super::*;
+    use std::convert::TryInto;
 
     #[test]
     fn test_constants() {
@@ -330,10 +354,21 @@ mod tests {
             sha512: <Sha512 as Hasher>::Digest,
         }
 
+        fn std_hash<H: Hasher>(x: &[u8]) -> u64 {
+            let mut hasher = H::default();
+            hasher.write(x);
+            <H as std::hash::Hasher>::finish(&hasher)
+        }
+
         for case in TEST_CASES.iter() {
             fn test<H: Hasher>(input: &'static [u8], digest: &H::Digest) {
+                use self::inner::Digest;
                 let got = H::hash(input);
                 assert_eq!(&got, digest, "input: {:?}", input);
+                assert_eq!(
+                    std_hash::<H>(input),
+                    u64::from_le_bytes(digest.as_ref()[0..8].try_into().unwrap())
+                );
                 // Also use this as an opportunity to test Digest::from_bytes
                 // and Digest::as_ref.
                 assert_eq!(
