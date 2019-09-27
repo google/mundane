@@ -10,16 +10,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [0.4.1] - 2019-09-27
+
+### Added
+- `hmac::Hmac` now implements `Clone` and `std::hash::Hasher`, allowing it to be
+  used with any type that implements `std::hash::Hash`.
+- `hash::Hasher` now similarly implies `Clone` and `std::hash::Hasher`.
+
+## [0.4.0] - 2019-09-25
 
 ### Added
 - `public::rsa` now supports RSA-PKCS1v1.5 signing (behind the `rsa-pkcs1v15`
   feature flag).
 - Added `bytes` module guarded by the `bytes` feature, containing
   `constant_time_eq`.
-- `hmac::Hmac` now implements `Clone` and `std::hash::Hasher`, allowing it to be
-  used with any type that implements `std::hash::Hash`.
-- `hash::Hasher` now similarly implies `Clone` and `std::hash::Hasher`.
 
 ### Changed
 - `build.rs` implements symbol name scraping natively, and no longer relies on
