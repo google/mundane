@@ -15,6 +15,9 @@ keywords = ["boringssl"]
 categories = ["cryptography"]
 repository = "https://mundane.googlesource.com/mundane"
 
+[package.metadata.docs.rs]
+features = ["bytes","insecure","kdf","rsa-pkcs1v15"]
+
 # Exclude these test files in order to get under the minimum crates.io crate
 # file size.
 exclude = [
@@ -28,7 +31,7 @@ build = "build/main.rs"
 [build-dependencies]
 goblin = "0.0.24"
 
-# If you edit this list, make sure to update test.sh!
+# If you edit this list, make sure to update test.sh and the package.metadata.docs.rs section.
 [features]
 default = ["rsa-test-generate-large-keys"]
 insecure = []
