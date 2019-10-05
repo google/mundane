@@ -10,6 +10,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
+## [0.4.2] - 2019-10-04
+
+### Fixed
+- Fixed issue where 0.4.1 was released without updating BoringSSL symbols.
+- Fixed issue caused by a bad interaction between `#[derive(Clone)]` and
+  `#[deprecated]`.
+
 ## [0.4.1] - 2019-09-27
 
 ### Added
