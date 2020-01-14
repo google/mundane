@@ -13,7 +13,7 @@ readme = "README.md"
 license-file = "LICENSE"
 keywords = ["boringssl"]
 categories = ["cryptography"]
-repository = "https://mundane.googlesource.com/mundane"
+repository = "https://fuchsia.googlesource.com/mundane"
 
 [package.metadata.docs.rs]
 features = ["bytes","insecure","kdf","rsa-pkcs1v15"]
