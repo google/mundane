@@ -81,14 +81,14 @@ mod raw;
 
 // C types
 pub use boringssl::ffi::{
-    BIGNUM, CBB, CBS, EC_GROUP, EC_KEY, EVP_MD, EVP_PKEY, HMAC_CTX, RSA, RSA_F4, SHA256_CTX,
+    BIGNUM, CBB, CBS, EC_GROUP, EC_KEY, EVP_MD, EVP_PKEY, HMAC_CTX, MD5_CTX, RSA, RSA_F4, SHA256_CTX,
     SHA512_CTX, SHA_CTX,
 };
 // C constants
 pub use boringssl::ffi::{
-    NID_X9_62_prime256v1, NID_secp384r1, NID_secp521r1, NID_sha1, NID_sha256, NID_sha384,
+    NID_md5, NID_X9_62_prime256v1, NID_secp384r1, NID_secp521r1, NID_sha1, NID_sha256, NID_sha384,
     NID_sha512, ED25519_PRIVATE_KEY_LEN, ED25519_PUBLIC_KEY_LEN, ED25519_SIGNATURE_LEN,
-    SHA256_DIGEST_LENGTH, SHA384_DIGEST_LENGTH, SHA512_DIGEST_LENGTH, SHA_DIGEST_LENGTH,
+    MD5_DIGEST_LENGTH, SHA256_DIGEST_LENGTH, SHA384_DIGEST_LENGTH, SHA512_DIGEST_LENGTH, SHA_DIGEST_LENGTH,
 };
 // wrapper types
 pub use boringssl::wrapper::{CHeapWrapper, CRef, CStackWrapper};
@@ -495,6 +495,11 @@ macro_rules! impl_evp_digest {
 
 impl CRef<'static, EVP_MD> {
     impl_evp_digest!(
+        /// The `EVP_md5` function.
+        evp_md5,
+        EVP_md5
+    );
+    impl_evp_digest!(
         /// The `EVP_sha1` function.
         evp_sha1,
         EVP_sha1
@@ -806,6 +811,17 @@ macro_rules! impl_clone {
     };
 }
 
+impl_hash!(
+    MD5_CTX,
+    MD5_DIGEST_LENGTH,
+    /// The `MD5_Update` function.
+    md5_update,
+    MD5_Update,
+    /// The `MD5_Final` function.
+    md5_final,
+    MD5_Final
+);
+impl_clone!(MD5_CTX);
 impl_hash!(
     SHA_CTX,
     SHA_DIGEST_LENGTH,

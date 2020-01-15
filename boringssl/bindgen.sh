@@ -69,6 +69,7 @@ ECDSA_sign|\
 ECDSA_verify|\
 ECDSA_size|\
 ERR_print_errors_cb|\
+EVP_md5|\
 EVP_sha1|\
 EVP_sha256|\
 EVP_sha384|\
@@ -92,6 +93,10 @@ HMAC_Update|\
 HMAC_Final|\
 HMAC_size|\
 CRYPTO_memcmp|\
+MD5_Final|\
+MD5_Init|\
+MD5_Transform|\
+MD5_Update|\
 RAND_bytes|\
 RSA_bits|\
 RSA_free|\
@@ -130,6 +135,9 @@ ED25519_SIGNATURE_LEN|\
 EVP_MD|\
 EVP_PKEY|\
 HMAC_CTX|\
+MD5_CTX|\
+MD5_DIGEST_LENGTH|\
+NID_md5|\
 NID_X9_62_prime256v1|\
 NID_secp384r1|\
 NID_secp521r1|\

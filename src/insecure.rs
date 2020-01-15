@@ -16,11 +16,15 @@
 
 #[allow(deprecated)]
 #[cfg(feature = "insecure")]
-pub use hash::insecure_sha1_digest::InsecureSha1Digest;
+pub use hash::insecure_md5_digest::InsecureMd5Digest;
 #[allow(deprecated)]
 #[cfg(feature = "insecure")]
-pub use hmac::insecure_hmac_sha1::InsecureHmacSha1;
+pub use hash::insecure_sha1_digest::InsecureSha1Digest;
 
-#[cfg(feature = "kdf")]
 #[allow(deprecated)]
+#[cfg(feature = "insecure")]
+pub use hmac::insecure_hmac::{InsecureHmacMd5, InsecureHmacSha1};
+
+#[allow(deprecated)]
+#[cfg(all(feature = "kdf", feature = "insecure"))]
 pub use kdf::insecure_pbkdf2_hmac_sha1::insecure_pbkdf2_hmac_sha1;

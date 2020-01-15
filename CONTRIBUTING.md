@@ -170,12 +170,12 @@ the `hash` module. A programmer's first inclination might be to mark these as
 Unfortunately, Rust forbids this.
 
 Instead, we take the somewhat circuitous approach of putting an insecure
-operation inside of its own `pub(crate)` module (e.g.,
-`hmac::insecure_hmac_sha1`). Inside of this module, the insecure operation can be
-`pub` rather than `pub(crate)`. This, in turn, allows the `insecure` module to
-re-export the item without running afoul of the compiler. It's an awkward dance,
-but it makes it so that insecure operations can only be accessed through the
-`insecure` module, which is a big win.
+operation inside of its own `pub(crate)` module (e.g., `hmac::insecure_hmac`).
+Inside of this module, the insecure operation can be `pub` rather than
+`pub(crate)`. This, in turn, allows the `insecure` module to re-export the item
+without running afoul of the compiler. It's an awkward dance, but it makes it so
+that insecure operations can only be accessed through the `insecure` module,
+which is a big win.
 
 ##### Feature Gating
 

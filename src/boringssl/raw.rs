@@ -34,6 +34,20 @@ use boringssl::abort::UnwrapAbort;
 use boringssl::wrapper::CInit;
 use boringssl::BoringError;
 
+macro_rules! impl_hash_context {
+    ($ctx:ident, $update:ident, $final:ident) => {
+        #[allow(non_snake_case)]
+        pub unsafe fn $update(ctx: *mut ffi::$ctx, data: *const c_void, len: usize) {
+            // All XXX_Update functions promise to return 1.
+            assert_abort_eq!(ffi::$update(ctx, data, len), 1);
+        }
+        #[allow(non_snake_case)]
+        pub unsafe fn $final(md: *mut u8, ctx: *mut ffi::$ctx) -> Result<(), BoringError> {
+            one_or_err(stringify!($final), ffi::$final(md, ctx))
+        }
+    };
+}
+
 // bn.h
 
 // BIGNUMs can be either heap- or stack-allocated, and they keep track of which
@@ -112,6 +126,7 @@ macro_rules! evp_digest {
     };
 }
 
+evp_digest!(EVP_md5);
 evp_digest!(EVP_sha1);
 evp_digest!(EVP_sha256);
 evp_digest!(EVP_sha384);
@@ -476,7 +491,14 @@ pub unsafe fn RSA_verify_pss_mgf1(
     }
 }
 
-// sha.h
+// md5.h and sha.h
+
+unsafe impl CInit for ffi::MD5_CTX {
+    unsafe fn init(ctx: *mut Self) {
+        // MD5_Init promises to return 1.
+        assert_abort_eq!(ffi::MD5_Init(ctx), 1);
+    }
+}
 
 #[allow(non_snake_case)]
 pub unsafe fn SHA384_Init(ctx: *mut SHA512_CTX) {
@@ -506,28 +528,16 @@ unsafe impl CInit for ffi::SHA512_CTX {
 }
 
 // implement no-op destructors
+impl_traits!(MD5_CTX, CDestruct => _);
 impl_traits!(SHA_CTX, CDestruct => _);
 impl_traits!(SHA256_CTX, CDestruct => _);
 impl_traits!(SHA512_CTX, CDestruct => _);
 
-macro_rules! sha {
-    ($ctx:ident, $update:ident, $final:ident) => {
-        #[allow(non_snake_case)]
-        pub unsafe fn $update(ctx: *mut ffi::$ctx, data: *const c_void, len: usize) {
-            // All XXX_Update functions promise to return 1.
-            assert_abort_eq!(ffi::$update(ctx, data, len), 1);
-        }
-        #[allow(non_snake_case)]
-        pub unsafe fn $final(md: *mut u8, ctx: *mut ffi::$ctx) -> Result<(), BoringError> {
-            one_or_err(stringify!($final), ffi::$final(md, ctx))
-        }
-    };
-}
-
-sha!(SHA_CTX, SHA1_Update, SHA1_Final);
-sha!(SHA256_CTX, SHA256_Update, SHA256_Final);
-sha!(SHA512_CTX, SHA384_Update, SHA384_Final);
-sha!(SHA512_CTX, SHA512_Update, SHA512_Final);
+impl_hash_context!(MD5_CTX, MD5_Update, MD5_Final);
+impl_hash_context!(SHA_CTX, SHA1_Update, SHA1_Final);
+impl_hash_context!(SHA256_CTX, SHA256_Update, SHA256_Final);
+impl_hash_context!(SHA512_CTX, SHA384_Update, SHA384_Final);
+impl_hash_context!(SHA512_CTX, SHA512_Update, SHA512_Final);
 
 // utility functions
 
