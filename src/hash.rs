@@ -5,6 +5,8 @@
 // https://opensource.org/licenses/MIT.
 
 //! Cryptographic hash functions.
+//!
+//! *This module is available if Mundane is built with the `insecure` feature.*
 
 use std::fmt::{self, Debug, Display, Formatter};
 

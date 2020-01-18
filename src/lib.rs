@@ -53,17 +53,17 @@ mod macros;
 // Forbid unsafe code except in the boringssl module.
 #[allow(unsafe_code)]
 mod boringssl;
-#[cfg(feature = "bytes")]
+#[cfg(any(doc, feature = "bytes"))]
 #[forbid(unsafe_code)]
 pub mod bytes;
 #[forbid(unsafe_code)]
 pub mod hash;
 #[forbid(unsafe_code)]
 pub mod hmac;
-#[cfg(feature = "insecure")]
+#[cfg(any(doc, feature = "insecure"))]
 #[forbid(unsafe_code)]
 pub mod insecure;
-#[cfg(feature = "kdf")]
+#[cfg(any(doc, feature = "kdf"))]
 #[forbid(unsafe_code)]
 pub mod kdf;
 #[forbid(unsafe_code)]

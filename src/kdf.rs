@@ -11,6 +11,8 @@
 //! probably be using something else. In particular:
 //! - If you need password verification, see the [`password`] module.
 //!
+//! *This module is available if Mundane is built with the `kdf` feature.*
+//!
 //! [`password`]: ::password
 
 use std::num::NonZeroU32;

@@ -1,4 +1,6 @@
 //! Byte manipulation.
+//!
+//! *This module is available if Mundane is built with the `bytes` feature.*
 
 use boringssl;
 

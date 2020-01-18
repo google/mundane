@@ -371,7 +371,9 @@ pub trait RsaSignatureScheme:
 /// This signature scheme is old, and considered less secure than RSA-PSS. It
 /// should only be used for compatibility with legacy systems - never in new
 /// systems!
-#[cfg(feature = "rsa-pkcs1v15")]
+///
+/// *This signature scheme is available if Mundane is built with the `rsa-pkcs1v15` feature.*
+#[cfg(any(doc, feature = "rsa-pkcs1v15"))]
 #[derive(Copy, Clone, Default, Debug, Eq, PartialEq, Hash)]
 pub struct RsaPkcs1v15;
 
