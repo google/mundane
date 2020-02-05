@@ -15,9 +15,6 @@ keywords = ["boringssl"]
 categories = ["cryptography"]
 repository = "https://fuchsia.googlesource.com/mundane"
 
-[package.metadata.docs.rs]
-features = ["bytes","insecure","kdf","rsa-pkcs1v15"]
-
 # Exclude these test files in order to get under the minimum crates.io crate
 # file size.
 exclude = [
@@ -28,6 +25,10 @@ exclude = [
 ]
 
 build = "build/main.rs"
+
+[package.metadata.docs.rs]
+features = ["bytes","insecure","kdf","rsa-pkcs1v15"]
+
 [build-dependencies]
 goblin = "0.0.24"
 
