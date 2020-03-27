@@ -81,14 +81,15 @@ mod raw;
 
 // C types
 pub use boringssl::ffi::{
-    BIGNUM, CBB, CBS, EC_GROUP, EC_KEY, EVP_MD, EVP_PKEY, HMAC_CTX, MD5_CTX, RSA, RSA_F4, SHA256_CTX,
-    SHA512_CTX, SHA_CTX,
+    BIGNUM, CBB, CBS, EC_GROUP, EC_KEY, EVP_MD, EVP_PKEY, HMAC_CTX, MD5_CTX, RSA, RSA_F4,
+    SHA256_CTX, SHA512_CTX, SHA_CTX,
 };
 // C constants
 pub use boringssl::ffi::{
-    NID_md5, NID_X9_62_prime256v1, NID_secp384r1, NID_secp521r1, NID_sha1, NID_sha256, NID_sha384,
+    NID_X9_62_prime256v1, NID_md5, NID_secp384r1, NID_secp521r1, NID_sha1, NID_sha256, NID_sha384,
     NID_sha512, ED25519_PRIVATE_KEY_LEN, ED25519_PUBLIC_KEY_LEN, ED25519_SIGNATURE_LEN,
-    MD5_DIGEST_LENGTH, SHA256_DIGEST_LENGTH, SHA384_DIGEST_LENGTH, SHA512_DIGEST_LENGTH, SHA_DIGEST_LENGTH,
+    MD5_DIGEST_LENGTH, SHA256_DIGEST_LENGTH, SHA384_DIGEST_LENGTH, SHA512_DIGEST_LENGTH,
+    SHA_DIGEST_LENGTH,
 };
 // wrapper types
 pub use boringssl::wrapper::{CHeapWrapper, CRef, CStackWrapper};
@@ -96,9 +97,9 @@ pub use boringssl::wrapper::{CHeapWrapper, CRef, CStackWrapper};
 use std::convert::TryInto;
 use std::ffi::CStr;
 use std::fmt::{self, Debug, Display, Formatter};
+use std::mem::MaybeUninit;
 use std::num::NonZeroUsize;
 use std::os::raw::{c_char, c_int, c_uint, c_void};
-use std::mem::MaybeUninit;
 use std::{ptr, slice};
 
 use boringssl::abort::UnwrapAbort;
@@ -535,7 +536,12 @@ impl CStackWrapper<HMAC_CTX> {
         unsafe {
             let mut ctx = MaybeUninit::uninit();
             HMAC_CTX_init(ctx.as_mut_ptr());
-            HMAC_Init_ex(ctx.as_mut_ptr(), key.as_ptr() as *const c_void, key.len(), md.as_const())?;
+            HMAC_Init_ex(
+                ctx.as_mut_ptr(),
+                key.as_ptr() as *const c_void,
+                key.len(),
+                md.as_const(),
+            )?;
             Ok(CStackWrapper::new(ctx.assume_init()))
         }
     }

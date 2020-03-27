@@ -114,8 +114,8 @@ fn main() {
     for blacklisted_symbol in &symbol_blacklist {
         symbols.remove(*blacklisted_symbol);
     }
-    let mut symbols_file = fs::File::create(&abs_symbol_file)
-        .expect("could not create symbols file");
+    let mut symbols_file =
+        fs::File::create(&abs_symbol_file).expect("could not create symbols file");
     for symbol in symbols {
         write!(symbols_file, "{}\n", symbol).expect("write to symbols file failed");
     }
