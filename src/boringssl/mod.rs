@@ -104,15 +104,16 @@ use std::{ptr, slice};
 
 use boringssl::abort::UnwrapAbort;
 use boringssl::raw::{
-    BN_set_u64, CBB_data, CBB_init, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, ECDSA_sign,
+    size_t, BN_set_u64, CBB_data, CBB_init, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, ECDSA_sign,
     ECDSA_size, ECDSA_verify, EC_GROUP_get_curve_name, EC_GROUP_new_by_curve_name,
     EC_KEY_generate_key, EC_KEY_get0_group, EC_KEY_marshal_private_key, EC_KEY_parse_private_key,
     EC_KEY_set_group, EC_curve_nid2nist, ED25519_keypair, ED25519_keypair_from_seed, ED25519_sign,
     ED25519_verify, ERR_print_errors_cb, EVP_PBE_scrypt, EVP_PKEY_assign_EC_KEY,
     EVP_PKEY_assign_RSA, EVP_PKEY_get1_EC_KEY, EVP_PKEY_get1_RSA, EVP_marshal_public_key,
     EVP_parse_public_key, HMAC_CTX_copy, HMAC_CTX_init, HMAC_Final, HMAC_Init_ex, HMAC_Update,
-    HMAC_size, RAND_bytes, RSA_bits, RSA_generate_key_ex, RSA_marshal_private_key,
-    RSA_parse_private_key, RSA_sign_pss_mgf1, RSA_size, RSA_verify_pss_mgf1, SHA384_Init,
+    HMAC_size, IntoSizeT, IntoUsize, RAND_bytes, RSA_bits, RSA_generate_key_ex,
+    RSA_marshal_private_key, RSA_parse_private_key, RSA_sign_pss_mgf1, RSA_size,
+    RSA_verify_pss_mgf1, SHA384_Init,
 };
 #[cfg(feature = "rsa-pkcs1v15")]
 use boringssl::raw::{RSA_sign, RSA_verify};
@@ -133,7 +134,7 @@ impl CStackWrapper<CBB> {
     pub fn cbb_new(initial_capacity: usize) -> Result<CStackWrapper<CBB>, BoringError> {
         unsafe {
             let mut cbb = MaybeUninit::uninit();
-            CBB_init(cbb.as_mut_ptr(), initial_capacity)?;
+            CBB_init(cbb.as_mut_ptr(), initial_capacity.into_size_t())?;
             Ok(CStackWrapper::new(cbb.assume_init()))
         }
     }
@@ -161,7 +162,7 @@ impl CStackWrapper<CBB> {
                 let ptr = CBB_data(self.as_const()).unwrap_abort();
                 // TODO(joshlf): Can with_data use this to smuggle out the
                 // reference, outliving the lifetime of self?
-                with_data(slice::from_raw_parts(ptr.as_ptr(), len))
+                with_data(slice::from_raw_parts(ptr.as_ptr(), len.into_usize()))
             }
         }
     }
@@ -171,7 +172,7 @@ impl CStackWrapper<CBS> {
     /// The `CBS_len` function.
     #[must_use]
     pub fn cbs_len(&self) -> usize {
-        unsafe { CBS_len(self.as_const()) }
+        unsafe { CBS_len(self.as_const()).into_usize() }
     }
 
     /// Invokes a callback on a temporary `CBS`.
@@ -187,7 +188,7 @@ impl CStackWrapper<CBS> {
     ) -> O {
         unsafe {
             let mut cbs = MaybeUninit::uninit();
-            CBS_init(cbs.as_mut_ptr(), bytes.as_ptr(), bytes.len());
+            CBS_init(cbs.as_mut_ptr(), bytes.as_ptr(), bytes.len().into_size_t());
             let mut cbs = CStackWrapper::new(cbs.assume_init());
             with_cbs(&mut cbs)
         }
@@ -289,7 +290,7 @@ pub fn ecdsa_sign(
         ECDSA_sign(
             0,
             digest.as_ptr(),
-            digest.len(),
+            digest.len().into_size_t(),
             sig.as_mut_ptr(),
             &mut sig_len,
             key.as_const(),
@@ -306,7 +307,14 @@ pub fn ecdsa_sign(
 #[must_use]
 pub fn ecdsa_verify(digest: &[u8], sig: &[u8], key: &CHeapWrapper<EC_KEY>) -> bool {
     unsafe {
-        ECDSA_verify(0, digest.as_ptr(), digest.len(), sig.as_ptr(), sig.len(), key.as_const())
+        ECDSA_verify(
+            0,
+            digest.as_ptr(),
+            digest.len().into_size_t(),
+            sig.as_ptr(),
+            sig.len().into_size_t(),
+            key.as_const(),
+        )
     }
 }
 
@@ -331,7 +339,7 @@ pub fn ed25519_keypair() -> [u8; ED25519_PRIVATE_KEY_LEN as usize] {
 #[must_use]
 pub fn ed25519_sign(message: &[u8], private_key: &[u8; 64]) -> Result<[u8; 64], BoringError> {
     let mut sig = [0u8; 64];
-    unsafe { ED25519_sign(&mut sig, message.as_ptr(), message.len(), private_key)? };
+    unsafe { ED25519_sign(&mut sig, message.as_ptr(), message.len().into_size_t(), private_key)? };
     Ok(sig)
 }
 
@@ -353,7 +361,7 @@ pub fn ed25519_keypair_from_seed(seed: &[u8; 32]) -> ([u8; 32], [u8; 64]) {
 /// The `ED25519_verify` function.
 #[must_use]
 pub fn ed25519_verify(message: &[u8], signature: &[u8; 64], public_key: &[u8; 32]) -> bool {
-    unsafe { ED25519_verify(message.as_ptr(), message.len(), signature, public_key) }
+    unsafe { ED25519_verify(message.as_ptr(), message.len().into_size_t(), signature, public_key) }
 }
 
 impl CHeapWrapper<EVP_PKEY> {
@@ -429,15 +437,15 @@ pub fn evp_pbe_scrypt(
     unsafe {
         EVP_PBE_scrypt(
             password.as_ptr() as *const c_char,
-            password.len(),
+            password.len().into_size_t(),
             salt.as_ptr(),
-            salt.len(),
+            salt.len().into_size_t(),
             N,
             r,
             p,
-            max_mem,
+            max_mem.into_size_t(),
             out_key.as_mut_ptr(),
-            out_key.len(),
+            out_key.len().into_size_t(),
         )
     }
 }
@@ -455,12 +463,12 @@ pub fn pkcs5_pbkdf2_hmac(
     unsafe {
         raw::PKCS5_PBKDF2_HMAC(
             password.as_ptr() as *const c_char,
-            password.len(),
+            password.len().into_size_t(),
             salt.as_ptr(),
-            salt.len(),
+            salt.len().into_size_t(),
             iterations,
             digest.as_const(),
-            out_key.len(),
+            out_key.len().into_size_t(),
             out_key.as_mut_ptr(),
         )
     }
@@ -539,7 +547,7 @@ impl CStackWrapper<HMAC_CTX> {
             HMAC_Init_ex(
                 ctx.as_mut_ptr(),
                 key.as_ptr() as *const c_void,
-                key.len(),
+                key.len().into_size_t(),
                 md.as_const(),
             )?;
             Ok(CStackWrapper::new(ctx.assume_init()))
@@ -548,7 +556,7 @@ impl CStackWrapper<HMAC_CTX> {
 
     /// The `HMAC_Update` function.
     pub fn hmac_update(&mut self, data: &[u8]) {
-        unsafe { HMAC_Update(self.as_mut(), data.as_ptr(), data.len()) }
+        unsafe { HMAC_Update(self.as_mut(), data.as_ptr(), data.len().into_size_t()) }
     }
 
     // NOTE(joshlf): We require exactly the right length (as opposed to just
@@ -562,9 +570,9 @@ impl CStackWrapper<HMAC_CTX> {
     /// by `HMAC_size`).
     pub fn hmac_final(&mut self, out: &mut [u8]) {
         unsafe {
-            let size = HMAC_size(self.as_const());
-            assert_abort_eq!(out.len(), size);
-            let mut size = 0;
+            let hmac_size = HMAC_size(self.as_const()).into_usize();
+            assert_abort_eq!(out.len(), hmac_size);
+            let mut hmac_final_size: u32 = 0;
             // HMAC_Final is documented to fail on allocation failure, but an
             // internal comment states that it's infallible. In either case, we
             // want to panic. Normally, for allocation failure, we'd put the
@@ -573,9 +581,18 @@ impl CStackWrapper<HMAC_CTX> {
             //
             // TODO(joshlf): Remove this comment once HMAC_Final is documented
             // as being infallible.
-            HMAC_Final(self.as_mut(), out.as_mut_ptr(), &mut size).unwrap_abort();
-            // Guaranteed to be the value returned by HMAC_size.
-            assert_abort_eq!(out.len(), size as usize);
+            HMAC_Final(self.as_mut(), out.as_mut_ptr(), &mut hmac_final_size).unwrap_abort();
+            // `HMAC_Final` guarantees that it will set its out argument to the
+            // same value returned by `HMAC_size`. If the conversion from `u32`
+            // to `usize` fails, that means that a) we are on a 16-bit platform
+            // and b) that `HMAC_Final` failed to uphold its contract.
+            assert_abort_eq!(
+                hmac_size,
+                hmac_final_size
+                    .try_into()
+                    .expect("`HMAC_Final` returned size out of range of `usize`")
+            );
+            assert_abort_eq!(out.len(), hmac_size);
         }
     }
 
@@ -685,7 +702,7 @@ pub fn rsa_sign_pss_mgf1(
     salt_len: c_int,
 ) -> Result<usize, BoringError> {
     unsafe {
-        let mut sig_len: usize = 0;
+        let mut sig_len: size_t = 0;
         RSA_sign_pss_mgf1(
             // RSA_sign_pss_mgf1 does not mutate its argument but, for
             // backwards-compatibility reasons, continues to take a normal
@@ -693,9 +710,9 @@ pub fn rsa_sign_pss_mgf1(
             key.as_const() as *mut _,
             &mut sig_len,
             sig.as_mut_ptr(),
-            sig.len(),
+            sig.len().into_size_t(),
             digest.as_ptr(),
-            digest.len(),
+            digest.len().into_size_t(),
             md.as_const(),
             mgf1_md.map(CRef::as_const).unwrap_or(ptr::null()),
             salt_len,
@@ -704,6 +721,7 @@ pub fn rsa_sign_pss_mgf1(
         // RSA_sign_pss_mgf1 guarantees that it only needs RSA_size bytes for
         // the signature.
         let rsa_size = key.rsa_size().unwrap_abort();
+        let sig_len = sig_len.into_usize();
         assert_abort!(sig_len <= rsa_size.get());
         Ok(sig_len)
     }
@@ -717,9 +735,9 @@ pub fn rsa_verify(hash_nid: c_int, digest: &[u8], sig: &[u8], key: &CHeapWrapper
         RSA_verify(
             hash_nid,
             digest.as_ptr(),
-            digest.len(),
+            digest.len().into_size_t(),
             sig.as_ptr(),
-            sig.len(),
+            sig.len().into_size_t(),
             // RSA_verify does not mutate its argument but, for
             // backwards-compatibility reasons, continues to take a normal
             // (non-const) pointer.
@@ -745,12 +763,12 @@ pub fn rsa_verify_pss_mgf1(
             // (non-const) pointer.
             key.as_const() as *mut _,
             digest.as_ptr(),
-            digest.len(),
+            digest.len().into_size_t(),
             md.as_const(),
             mgf1_md.map(CRef::as_const).unwrap_or(ptr::null()),
             salt_len,
             sig.as_ptr(),
-            sig.len(),
+            sig.len().into_size_t(),
         )
     }
 }
@@ -772,7 +790,7 @@ macro_rules! impl_hash {
                     ::boringssl::raw::$update_raw(
                         self.as_mut(),
                         data.as_ptr() as *const c_void,
-                        data.len(),
+                        data.len().into_size_t(),
                     )
                 }
             }
@@ -881,12 +899,18 @@ pub fn crypto_memcmp(a: &[u8], b: &[u8]) -> bool {
     if a.len() != b.len() {
         return false;
     }
-    unsafe { CRYPTO_memcmp(a.as_ptr() as *const c_void, b.as_ptr() as *const c_void, a.len()) == 0 }
+    unsafe {
+        CRYPTO_memcmp(
+            a.as_ptr() as *const c_void,
+            b.as_ptr() as *const c_void,
+            a.len().into_size_t(),
+        ) == 0
+    }
 }
 
 /// The `RAND_bytes` function.
 pub fn rand_bytes(buf: &mut [u8]) {
-    unsafe { RAND_bytes(buf.as_mut_ptr(), buf.len()) }
+    unsafe { RAND_bytes(buf.as_mut_ptr(), buf.len().into_size_t()) }
 }
 
 /// An error generated by BoringSSL.
@@ -941,9 +965,13 @@ impl BoringError {
 fn get_error_stack_trace() -> Vec<String> {
     // Credit to agl@google.com for this implementation.
 
-    unsafe extern "C" fn error_callback(s: *const c_char, s_len: usize, ctx: *mut c_void) -> c_int {
+    unsafe extern "C" fn error_callback(
+        s: *const c_char,
+        s_len: size_t,
+        ctx: *mut c_void,
+    ) -> c_int {
         let stack_trace = ctx as *mut Vec<String>;
-        let s = ::std::slice::from_raw_parts(s as *const u8, s_len - 1);
+        let s = ::std::slice::from_raw_parts(s as *const u8, s_len.into_usize() - 1);
         (*stack_trace).push(String::from_utf8_lossy(s).to_string());
         1
     }
