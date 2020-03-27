@@ -12,8 +12,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+## [0.4.3] - 2020-03-26
+
 ### Added
 - Exposed MD5 digest and HMAC in the `insecure` module.
+
+### Changed
+- Documentation on docs.rs now includes all items behind feature flags.
 
 ## [0.4.2] - 2019-10-04
 
