@@ -158,6 +158,19 @@ SHA512_DIGEST_LENGTH"
 
 WHITELIST="(${WHITELIST_FUNCS}|${WHITELIST_OTHERS})"
 
+# NOTE(joshlf): We pin to a particular version of bindgen since updates
+# sometimes change the semantics of the generated bindings (for example, by
+# changing the Rust types that are generated for particular C types). If a more
+# recent version of bindgen is available, "roll" bindgen by updating the
+# `BINDGEN_EXPECTED_VERSION` variable here.
+BINDGEN_EXPECTED_VERSION="bindgen 0.53.2"
+BINDGEN_GOT_VERSION="$(bindgen --version)"
+if [ "$BINDGEN_GOT_VERSION" != "$BINDGEN_EXPECTED_VERSION" ]; then
+    echo "Unexpected version of bindgen: got $BINDGEN_GOT_VERSION; wanted $BINDGEN_EXPECTED_VERSION.
+If a newer version is available, edit this script to pin to that version." >&2
+    exit 1
+fi
+
 # NOTE(joshlf): Currently, we don't pass --target since none of the symbols
 # we're linking against are architecture-specific (TODO: are any of them
 # word-size-specific?). If this ever becomes a problem, then the thing to do is
