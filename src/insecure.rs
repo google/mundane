@@ -28,3 +28,7 @@ pub use hmac::insecure_hmac::{InsecureHmacMd5, InsecureHmacSha1};
 #[allow(deprecated)]
 #[cfg(all(feature = "kdf", feature = "insecure"))]
 pub use kdf::insecure_pbkdf2_hmac_sha1::insecure_pbkdf2_hmac_sha1;
+
+#[allow(deprecated)]
+#[cfg(feature = "insecure")]
+pub use insecure_rc4::InsecureRc4Key;

@@ -98,6 +98,8 @@ MD5_Init|\
 MD5_Transform|\
 MD5_Update|\
 RAND_bytes|\
+RC4|\
+RC4_set_key|\
 RSA_bits|\
 RSA_free|\
 RSA_generate_key_ex|\
@@ -145,6 +147,7 @@ NID_sha1|\
 NID_sha256|\
 NID_sha384|\
 NID_sha512|\
+RC4_KEY|\
 RSA|\
 RSA_F4|\
 SHA_CTX|\
@@ -163,7 +166,7 @@ WHITELIST="(${WHITELIST_FUNCS}|${WHITELIST_OTHERS})"
 # changing the Rust types that are generated for particular C types). If a more
 # recent version of bindgen is available, "roll" bindgen by updating the
 # `BINDGEN_EXPECTED_VERSION` variable here.
-BINDGEN_EXPECTED_VERSION="bindgen 0.53.2"
+BINDGEN_EXPECTED_VERSION="bindgen 0.54.0"
 BINDGEN_GOT_VERSION="$(bindgen --version)"
 if [ "$BINDGEN_GOT_VERSION" != "$BINDGEN_EXPECTED_VERSION" ]; then
     echo "Unexpected version of bindgen: got $BINDGEN_GOT_VERSION; wanted $BINDGEN_EXPECTED_VERSION.

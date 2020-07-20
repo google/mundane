@@ -16,5 +16,6 @@
 #include <openssl/md5.h>
 #include <openssl/mem.h>
 #include <openssl/rand.h>
+#include <openssl/rc4.h>
 #include <openssl/rsa.h>
 #include <openssl/sha.h>
