@@ -30,18 +30,18 @@ PATCH="$3"
 # more symbols we depend on, the more likely it is that a change that they want
 # to make will affect us, which they will care about, making them either expend
 # effort in a graceful transition or decide to abandon the change. Thus, instead
-# of whitelisting broad classes of symbols, we explicitly whitelist the exact
-# list of symbols that Mundane depends on.
+# of allowing broad classes of symbols, we explicitly allow the exact list of
+# symbols that Mundane depends on.
 
 # TODO(inejge):
 # - When https://github.com/rust-lang-nursery/rust-bindgen/issues/1375 is resolved,
-#   go back to a single whitelist
+#   go back to a single allowlist
 
-# Split the whitelist into function names and other symbols, in order to use the
+# Split the allowlist into function names and other symbols, in order to use the
 # former for a consistency check of the postprocessing step which adds the
-# #[link_name...] attributes. Any change of the whitelist must be made to the
+# #[link_name...] attributes. Any change of the allowlist must be made to the
 # appropriate sub-list.
-WHITELIST_FUNCS="BN_free|\
+ALLOWLIST_FUNCS="BN_free|\
 BN_init|\
 BN_set_u64|\
 CBS_init|\
@@ -125,7 +125,7 @@ SHA512_Init|\
 SHA512_Update|\
 SHA512_Final"
 
-WHITELIST_OTHERS="BIGNUM|\
+ALLOWLIST_OTHERS="BIGNUM|\
 BN_GENCB|\
 CBB|\
 CBS|\
@@ -159,7 +159,7 @@ SHA384_DIGEST_LENGTH|\
 SHA512_CTX|\
 SHA512_DIGEST_LENGTH"
 
-WHITELIST="(${WHITELIST_FUNCS}|${WHITELIST_OTHERS})"
+ALLOWLIST="(${ALLOWLIST_FUNCS}|${ALLOWLIST_OTHERS})"
 
 # NOTE(joshlf): We pin to a particular version of bindgen since updates
 # sometimes change the semantics of the generated bindings (for example, by
@@ -180,8 +180,8 @@ fi
 # probably to generate different files for different platforms
 # (boringssl_x86_64.rs, boringssl_arm64.rs, etc) and conditionally compile them
 # depending on target.
-bindgen bindgen.h --whitelist-function "$WHITELIST" --whitelist-type "$WHITELIST" \
-    --whitelist-var "$WHITELIST" -o boringssl.rs -- -I ./boringssl/include
+bindgen bindgen.h --whitelist-function "$ALLOWLIST" --whitelist-type "$ALLOWLIST" \
+    --whitelist-var "$ALLOWLIST" -o boringssl.rs -- -I ./boringssl/include
 
 TMP="$(mktemp)"
 
@@ -218,11 +218,12 @@ cat boringssl.rs) \
 # Postprocess the generated bindings, adding the "#[link_name ...]"
 # attribute to exported functions. Since the function sites are matched
 # lexically, check the consistency of matches against the list of function
-# names defined above. An error will be returned if a) a matched function
-# is not in the whitelist, b) a name from the whitelist wasn't matched
-# in the input, or c) a name was matched more than once (which should
-# never happen).
-awk -v "vers=${MAJOR}_${MINOR}_${PATCH}_" -v "funcs=${WHITELIST_FUNCS}" '
+# names defined above. An error will be returned if:
+#
+# a) a matched function is not in the allowlist
+# b) a name from the allowlist wasn't matched in the input, or
+# c) a name was matched more than once (which should never happen).
+awk -v "vers=${MAJOR}_${MINOR}_${PATCH}_" -v "funcs=${ALLOWLIST_FUNCS}" '
 BEGIN {
     split(funcs, fa, "[|]")
     for (fn in fa)
@@ -237,7 +238,7 @@ BEGIN {
         fn = $3
         sub("[(].*", "", fn)
         if (!(fn in f)) {
-            print "fatal: fn not in whitelist: " fn | "cat >&2"
+            print "fatal: fn not in allowlist: " fn | "cat >&2"
             exit 1
         } else
             f[fn]++
