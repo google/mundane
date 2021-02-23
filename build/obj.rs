@@ -29,11 +29,9 @@ fn binary_exported_symbols(bytes: &[u8]) -> Result<BTreeSet<String>, Box<dyn err
                 // Member size is likely to be reported incorrectly by its header.
                 assert!(
                     member.offset + (member.size() as u64) <= (bytes.len() as u64),
-                    format!(
-                        "archive member is outside of boundaries; offset: {}, size: {}",
-                        member.offset,
-                        member.size()
-                    )
+                    "archive member is outside of boundaries; offset: {}, size: {}",
+                    member.offset,
+                    member.size()
                 );
                 symbols.extend(binary_exported_symbols(
                     &bytes[member.offset as usize..member.offset as usize + member.size()],

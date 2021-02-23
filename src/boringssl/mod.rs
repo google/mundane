@@ -114,9 +114,9 @@ use boringssl::raw::{
     ED25519_verify, ERR_print_errors_cb, EVP_PBE_scrypt, EVP_PKEY_assign_EC_KEY,
     EVP_PKEY_assign_RSA, EVP_PKEY_get1_EC_KEY, EVP_PKEY_get1_RSA, EVP_marshal_public_key,
     EVP_parse_public_key, HMAC_CTX_copy, HMAC_CTX_init, HMAC_Final, HMAC_Init_ex, HMAC_Update,
-    HMAC_size, IntoSizeT, IntoUsize, RAND_bytes, RC4, RC4_set_key, RSA_bits, RSA_generate_key_ex,
+    HMAC_size, IntoSizeT, IntoUsize, RAND_bytes, RC4_set_key, RSA_bits, RSA_generate_key_ex,
     RSA_marshal_private_key, RSA_parse_private_key, RSA_sign_pss_mgf1, RSA_size,
-    RSA_verify_pss_mgf1, SHA384_Init,
+    RSA_verify_pss_mgf1, SHA384_Init, RC4,
 };
 #[cfg(feature = "rsa-pkcs1v15")]
 use boringssl::raw::{RSA_sign, RSA_verify};
@@ -618,11 +618,7 @@ impl CStackWrapper<RC4_KEY> {
     /// the target platform's word size (`usize`). This function aborts if the
     /// length of the `key` slice exceeds `u32::MAX`.
     pub fn rc4_set_key(key: &[u8]) -> Self {
-        let mut rc4 = RC4_KEY {
-            x: 0,
-            y: 0,
-            data: [0; 256],
-        };
+        let mut rc4 = RC4_KEY { x: 0, y: 0, data: [0; 256] };
         unsafe {
             // `RC4_set_key` reads `key` and writes into `rc4`. It does not take
             // ownership of `key` and `key` need not live as long as `rc4`.

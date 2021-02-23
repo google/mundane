@@ -62,10 +62,10 @@ pub mod hash;
 pub mod hmac;
 #[cfg(any(doc, feature = "insecure"))]
 #[forbid(unsafe_code)]
-mod insecure_rc4;
+pub mod insecure;
 #[cfg(any(doc, feature = "insecure"))]
 #[forbid(unsafe_code)]
-pub mod insecure;
+mod insecure_rc4;
 #[cfg(any(doc, feature = "kdf"))]
 #[forbid(unsafe_code)]
 pub mod kdf;

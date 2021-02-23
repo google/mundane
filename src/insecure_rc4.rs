@@ -33,9 +33,7 @@ impl InsecureRc4Key {
     /// `u32::MAX`.
     #[deprecated(note = "RC4 is considered insecure")]
     pub fn insecure_new(key: &[u8]) -> Self {
-        InsecureRc4Key {
-            ctx: CStackWrapper::rc4_set_key(key.as_ref()),
-        }
+        InsecureRc4Key { ctx: CStackWrapper::rc4_set_key(key.as_ref()) }
     }
 
     /// INSECURE: Encrypts or decrypts a byte slice into another byte slice.

@@ -17,8 +17,8 @@
 // Infallible functions and the `size_t` type.
 pub use boringssl::ffi::{
     size_t, CBB_cleanup, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, EC_GROUP_get_curve_name,
-    ED25519_keypair, ED25519_keypair_from_seed, ERR_print_errors_cb, HMAC_CTX_init, HMAC_size, RC4,
-    RC4_set_key, RSA_bits,
+    ED25519_keypair, ED25519_keypair_from_seed, ERR_print_errors_cb, HMAC_CTX_init, HMAC_size,
+    RC4_set_key, RSA_bits, RC4,
 };
 
 use std::convert::TryInto;
