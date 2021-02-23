@@ -606,6 +606,17 @@ impl IntoUsize for size_t {
     }
 }
 
+#[cfg(target_pointer_width = "64")]
+impl IntoUsize for c_uint {
+    fn into_usize(self) -> usize {
+        // This line will stop compiling if `c_uint` is no longer an alias for
+        // `u32`.
+        let x: u32 = self;
+        // This is an infallible conversion since we're on a 64-bit platform.
+        x as usize
+    }
+}
+
 #[cfg(target_pointer_width = "32")]
 impl IntoSizeT for usize {
     fn into_size_t(self) -> size_t {
@@ -621,6 +632,17 @@ impl IntoSizeT for usize {
 impl IntoUsize for size_t {
     fn into_usize(self) -> usize {
         // This line will stop compiling if `size_t` is no longer an alias for
+        // `u32`.
+        let x: u32 = self;
+        // This is an infallible conversion since we're on a 32-bit platform.
+        x as usize
+    }
+}
+
+#[cfg(target_pointer_width = "32")]
+impl IntoUsize for c_uint {
+    fn into_usize(self) -> usize {
+        // This line will stop compiling if `c_uint` is no longer an alias for
         // `u32`.
         let x: u32 = self;
         // This is an infallible conversion since we're on a 32-bit platform.

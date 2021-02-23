@@ -641,11 +641,11 @@ impl CStackWrapper<RC4_KEY> {
 impl CHeapWrapper<RSA> {
     /// The `RSA_bits` function.
     #[must_use]
-    pub fn rsa_bits(&self) -> c_uint {
+    pub fn rsa_bits(&self) -> usize {
         // RSA_bits does not mutate its argument but, for
         // backwards-compatibility reasons, continues to take a normal
         // (non-const) pointer.
-        unsafe { RSA_bits(self.as_const() as *mut _) }
+        unsafe { RSA_bits(self.as_const() as *mut _).into_usize() }
     }
 
     /// The `RSA_generate_key_ex` function.

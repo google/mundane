@@ -24,7 +24,6 @@ use Error;
 mod inner {
     use std::convert::TryInto;
     use std::marker::PhantomData;
-    use std::os::raw::c_uint;
 
     use boringssl::{self, BoringError, CHeapWrapper, CStackWrapper};
     use hash::Hasher;
@@ -91,8 +90,8 @@ mod inner {
     }
 
     trait RsaKeyBitsExt: RsaKeyBits {
-        fn validate_bits(bits: c_uint) -> Result<(), Error> {
-            if <c_uint as TryInto<usize>>::try_into(bits).unwrap() != Self::BITS {
+        fn validate_bits(bits: usize) -> Result<(), Error> {
+            if bits != Self::BITS {
                 return Err(Error::new(format!(
                     "unexpected RSA key bit length: got {}; want {}",
                     bits,
