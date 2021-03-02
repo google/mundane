@@ -13,6 +13,7 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
+#![allow(clippy::all)]
 
 #[link(name = "crypto_0_4_3")]
 extern "C" {}

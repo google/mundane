@@ -280,22 +280,12 @@ impl RsaPubKeyAnyBits {
                 return Err(Error::new("excess data provided after valid DER input".to_string()));
             }
 
-            Ok(match key.rsa_bits().into() {
-                B2048::BITS => {
-                    RsaPubKeyAnyBits::B2048(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
-                }
-                B3072::BITS => {
-                    RsaPubKeyAnyBits::B3072(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
-                }
-                B4096::BITS => {
-                    RsaPubKeyAnyBits::B4096(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
-                }
-                B6144::BITS => {
-                    RsaPubKeyAnyBits::B6144(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
-                }
-                B8192::BITS => {
-                    RsaPubKeyAnyBits::B8192(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
-                }
+            Ok(match key.rsa_bits() {
+                B2048::BITS => RsaPubKeyAnyBits::B2048(RsaPubKey { inner: RsaKey::from_RSA(key)? }),
+                B3072::BITS => RsaPubKeyAnyBits::B3072(RsaPubKey { inner: RsaKey::from_RSA(key)? }),
+                B4096::BITS => RsaPubKeyAnyBits::B4096(RsaPubKey { inner: RsaKey::from_RSA(key)? }),
+                B6144::BITS => RsaPubKeyAnyBits::B6144(RsaPubKey { inner: RsaKey::from_RSA(key)? }),
+                B8192::BITS => RsaPubKeyAnyBits::B8192(RsaPubKey { inner: RsaKey::from_RSA(key)? }),
                 bits => return Err(Error::new(format!("unsupported bit length: {}", bits))),
             })
         })
@@ -349,21 +339,21 @@ impl RsaPrivKeyAnyBits {
                 return Err(Error::new("excess data provided after valid DER input".to_string()));
             }
 
-            Ok(match key.rsa_bits().into() {
+            Ok(match key.rsa_bits() {
                 B2048::BITS => {
-                    RsaPrivKeyAnyBits::B2048(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                    RsaPrivKeyAnyBits::B2048(RsaPrivKey { inner: RsaKey::from_RSA(key)? })
                 }
                 B3072::BITS => {
-                    RsaPrivKeyAnyBits::B3072(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                    RsaPrivKeyAnyBits::B3072(RsaPrivKey { inner: RsaKey::from_RSA(key)? })
                 }
                 B4096::BITS => {
-                    RsaPrivKeyAnyBits::B4096(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                    RsaPrivKeyAnyBits::B4096(RsaPrivKey { inner: RsaKey::from_RSA(key)? })
                 }
                 B6144::BITS => {
-                    RsaPrivKeyAnyBits::B6144(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                    RsaPrivKeyAnyBits::B6144(RsaPrivKey { inner: RsaKey::from_RSA(key)? })
                 }
                 B8192::BITS => {
-                    RsaPrivKeyAnyBits::B8192(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
+                    RsaPrivKeyAnyBits::B8192(RsaPrivKey { inner: RsaKey::from_RSA(key)? })
                 }
                 bits => return Err(Error::new(format!("unsupported bit length: {}", bits))),
             })

@@ -43,6 +43,12 @@
 
 #![deny(missing_docs)]
 #![deny(warnings)]
+// We use the `must_use` attribute liberally, including in cases where it's
+// technically unnecessary because the return type itself is marked as
+// `must_use`. We prefer to do this rather than make the lint happy because it
+// makes it less likely for us to forget a `must_use` attribute in the future if
+// we change the function's signature.
+#![allow(clippy::double_must_use)]
 // just in case we forget to add #[forbid(unsafe_code)] on new module
 // definitions
 #![deny(unsafe_code)]

@@ -14,6 +14,11 @@
 //! This module also directly re-exports any raw bindings which are infallible
 //! (e.g., `void` functions).
 
+// Many of the BoringSSL functions trigger this Clippy lint, and since the
+// purpose of this module is to mirror those functions, our only option is to
+// suppress this lint.
+#![allow(clippy::too_many_arguments)]
+
 // Infallible functions and the `size_t` type.
 pub use boringssl::ffi::{
     size_t, CBB_cleanup, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, EC_GROUP_get_curve_name,
@@ -588,10 +593,9 @@ pub trait IntoUsize {
 impl IntoSizeT for usize {
     fn into_size_t(self) -> size_t {
         // This is an infallible conversion since we're on a 64-bit platform.
-        let x = self as u64;
         // This line will stop compiling if `size_t` is no longer an alias for
         // `u64`.
-        x
+        self as u64
     }
 }
 
@@ -621,10 +625,9 @@ impl IntoUsize for c_uint {
 impl IntoSizeT for usize {
     fn into_size_t(self) -> size_t {
         // This is an infallible conversion since we're on a 32-bit platform.
-        let x = self as u32;
         // This line will stop compiling if `size_t` is no longer an alias for
         // `u32`.
-        x
+        self as u32
     }
 }
 

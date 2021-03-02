@@ -22,7 +22,8 @@ const BUILD_DIR_2: &str = "boringssl/build_2";
 const SYMBOL_FILE: &str = "boringssl/symbols.txt";
 
 fn env(name: &str) -> String {
-    let var = env::var(name).expect(&format!("missing required environment variable {}", name));
+    let var =
+        env::var(name).unwrap_or_else(|_| panic!("missing required environment variable {}", name));
     println!("cargo:rerun-if-env-changed={}", var);
     var
 }
@@ -117,7 +118,7 @@ fn main() {
     let mut symbols_file =
         fs::File::create(&abs_symbol_file).expect("could not create symbols file");
     for symbol in symbols {
-        write!(symbols_file, "{}\n", symbol).expect("write to symbols file failed");
+        writeln!(symbols_file, "{}", symbol).expect("write to symbols file failed");
     }
     // Make sure the file is fully written to disc before pasing it to BoringSSL's build system.
     symbols_file.sync_all().expect("failed to sync the symbols file to filesystem");
@@ -213,7 +214,7 @@ fn run(cmd: &str, args: &[&str]) {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .output()
-        .expect(&format!("failed to invoke {}", cmd));
+        .unwrap_or_else(|_| panic!("failed to invoke {}", cmd));
     if !output.status.success() {
         panic!("{} failed with status {}", cmd, output.status);
     }
