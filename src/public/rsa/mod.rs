@@ -10,7 +10,6 @@ mod bits;
 
 pub use public::rsa::bits::{RsaKeyBits, B2048, B3072, B4096, B6144, B8192};
 
-use std::convert::TryInto;
 use std::fmt::{self, Debug, Display, Formatter};
 use std::marker::PhantomData;
 
@@ -35,14 +34,16 @@ mod inner {
     // A convenience wrapper around boringssl::RSA.
     //
     // RsaKey maintains the following invariants:
-    // - The key is valid.
-    // - The key has B bits.
+    // - The key has B bits
+    // - The key has its "n" and "e" parameters initialized
     //
-    // This is marked pub and put in this (non-public) module so that using it in impls of
-    // the Key trait don't result in public-in-private errors.
+    // This is marked pub and put in this (non-public) module so that using it
+    // in impls of the DerKey trait don't result in public-in-private errors.
     #[derive(Clone)]
     pub struct RsaKey<B: RsaKeyBits> {
-        pub key: CHeapWrapper<boringssl::RSA>,
+        // WARNING: Do not expose this mutably. See the comment on `get_key` for
+        // more details.
+        key: CHeapWrapper<boringssl::RSA>,
         _marker: PhantomData<B>,
     }
 
@@ -52,6 +53,7 @@ mod inner {
             let mut e = CStackWrapper::default();
             // BN_set_u64 can only fail due to OOM.
             e.bn_set_u64(boringssl::RSA_F4.into()).unwrap();
+            // try_into can only fail if B::BITS overflows c_int.
             key.rsa_generate_key_ex(B::BITS.try_into().unwrap(), &e.as_c_ref())?;
             Ok(RsaKey { key, _marker: PhantomData })
         }
@@ -63,6 +65,22 @@ mod inner {
         pub fn from_RSA(key: CHeapWrapper<boringssl::RSA>) -> Result<RsaKey<B>, Error> {
             B::validate_bits(key.rsa_bits())?;
             Ok(RsaKey { key, _marker: PhantomData })
+        }
+
+        /// Gets the key immutably.
+        ///
+        /// Note that the choice not to provide a mutable getter is an
+        /// intentional one. The BoringSSL functions which mutate an RSA key -
+        /// descendents of OpenSSL's setter pattern - are very broken. In
+        /// particular, overwriting an existing key that has already been used
+        /// will produce broken objects and cause unexpected behavior. If
+        /// modification is required, create a new key.
+        ///
+        /// For more details, see [this comment thread].
+        ///
+        /// [this comment thread]: https://fuchsia-review.googlesource.com/c/mundane/+/486717/2/src/public/rsa/mod.rs#69
+        pub fn get_key(&self) -> &CHeapWrapper<boringssl::RSA> {
+            &self.key
         }
     }
 
@@ -262,7 +280,7 @@ impl RsaPubKeyAnyBits {
                 return Err(Error::new("excess data provided after valid DER input".to_string()));
             }
 
-            Ok(match key.rsa_bits().try_into().unwrap() {
+            Ok(match key.rsa_bits().into() {
                 B2048::BITS => {
                     RsaPubKeyAnyBits::B2048(RsaPubKey { inner: RsaKey::from_RSA(key.clone())? })
                 }
@@ -331,7 +349,7 @@ impl RsaPrivKeyAnyBits {
                 return Err(Error::new("excess data provided after valid DER input".to_string()));
             }
 
-            Ok(match key.rsa_bits().try_into().unwrap() {
+            Ok(match key.rsa_bits().into() {
                 B2048::BITS => {
                     RsaPrivKeyAnyBits::B2048(RsaPrivKey { inner: RsaKey::from_RSA(key.clone())? })
                 }
@@ -397,10 +415,10 @@ impl self::inner::RsaSignatureScheme for RsaPkcs1v15 {
     ) -> Result<usize, BoringError> {
         // NOTE: rsa_sign will panic if sig is not large enough to hold the
         // largest possible signature, as RSA_sign has this as a precondition.
-        boringssl::rsa_sign(H::nid(), digest, sig, &rsa.key)
+        boringssl::rsa_sign(H::nid(), digest, sig, rsa.get_key())
     }
     fn verify<B: RsaKeyBits, H: Hasher>(rsa: &RsaKey<B>, digest: &[u8], sig: &[u8]) -> bool {
-        boringssl::rsa_verify(H::nid(), digest, sig, &rsa.key)
+        boringssl::rsa_verify(H::nid(), digest, sig, rsa.get_key())
     }
 }
 
@@ -429,16 +447,16 @@ impl self::inner::RsaSignatureScheme for RsaPss {
         // does not. This assertion is an important security and correctness
         // check as well, as passing a too-short signature would result in the
         // signature being truncated.
-        assert!(sig.len() >= rsa.key.rsa_size().unwrap().get());
+        assert!(sig.len() >= rsa.get_key().rsa_size().unwrap().get());
         // A salt_len of -1 means to use a salt of the same length as the hash
         // output. This is a reasonable default and, for bit lengths larger than
         // 2048, ensures that the salt will never need to be truncated.
-        boringssl::rsa_sign_pss_mgf1(&rsa.key, sig, digest, &H::evp_md(), None, -1)
+        boringssl::rsa_sign_pss_mgf1(rsa.get_key(), sig, digest, &H::evp_md(), None, -1)
     }
     fn verify<B: RsaKeyBits, H: Hasher>(rsa: &RsaKey<B>, digest: &[u8], sig: &[u8]) -> bool {
         // A salt_len of -2 means to recover the salt length from the signature,
         // and thus to tolerate any salt length.
-        boringssl::rsa_verify_pss_mgf1(&rsa.key, digest, &H::evp_md(), None, -2, sig)
+        boringssl::rsa_verify_pss_mgf1(rsa.get_key(), digest, &H::evp_md(), None, -2, sig)
     }
 }
 
