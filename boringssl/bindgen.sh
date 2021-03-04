@@ -170,7 +170,7 @@ ALLOWLIST="(${ALLOWLIST_FUNCS}|${ALLOWLIST_OTHERS})"
 # changing the Rust types that are generated for particular C types). If a more
 # recent version of bindgen is available, "roll" bindgen by updating the
 # `BINDGEN_EXPECTED_VERSION` variable here.
-BINDGEN_EXPECTED_VERSION="bindgen 0.54.0"
+BINDGEN_EXPECTED_VERSION="bindgen 0.57.0"
 BINDGEN_GOT_VERSION="$(bindgen --version)"
 if [ "$BINDGEN_GOT_VERSION" != "$BINDGEN_EXPECTED_VERSION" ]; then
     echo "Unexpected version of bindgen: got $BINDGEN_GOT_VERSION; wanted $BINDGEN_EXPECTED_VERSION.
