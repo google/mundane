@@ -211,8 +211,17 @@ extern "C" {
     pub fn BN_free(bn: *mut BIGNUM);
 }
 extern "C" {
+    #[link_name = "__RUST_MUNDANE_0_4_3_BN_num_bytes"]
+    pub fn BN_num_bytes(bn: *const BIGNUM) -> ::std::os::raw::c_uint;
+}
+extern "C" {
     #[link_name = "__RUST_MUNDANE_0_4_3_BN_set_u64"]
     pub fn BN_set_u64(bn: *mut BIGNUM, value: u64) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    #[link_name = "__RUST_MUNDANE_0_4_3_BN_bn2bin_padded"]
+    pub fn BN_bn2bin_padded(out: *mut u8, len: size_t, in_: *const BIGNUM)
+        -> ::std::os::raw::c_int;
 }
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
@@ -1105,6 +1114,14 @@ extern "C" {
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_4_3_RSA_bits"]
     pub fn RSA_bits(rsa: *const RSA) -> ::std::os::raw::c_uint;
+}
+extern "C" {
+    #[link_name = "__RUST_MUNDANE_0_4_3_RSA_get0_n"]
+    pub fn RSA_get0_n(rsa: *const RSA) -> *const BIGNUM;
+}
+extern "C" {
+    #[link_name = "__RUST_MUNDANE_0_4_3_RSA_get0_e"]
+    pub fn RSA_get0_e(rsa: *const RSA) -> *const BIGNUM;
 }
 extern "C" {
     #[link_name = "__RUST_MUNDANE_0_4_3_RSA_generate_key_ex"]

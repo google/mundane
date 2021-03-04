@@ -82,6 +82,36 @@ mod inner {
         pub fn get_key(&self) -> &CHeapWrapper<boringssl::RSA> {
             &self.key
         }
+
+        /// Returns the key's public exponent as a big-endian byte vector.
+        pub fn public_exponent_be(&self) -> Vec<u8> {
+            // Guaranteed to succeed because RSA_get0_e can only fail if
+            // the "e" parameter is not initialized, but one of the invariants
+            // on RsaKey is that it is initialized.
+            let bignum = self.key.rsa_get0_e().unwrap();
+            let num_bytes = bignum.bn_num_bytes();
+            let mut exponent = vec![0; num_bytes];
+            // Guaranteed to succeed because the size of `exponent` is
+            // [`bn_num_bytes`].
+            bignum.bn_bn2bin_padded(exponent.as_mut_slice()).unwrap();
+
+            exponent
+        }
+
+        /// Returns the key's public modulus as a big-endian byte vector.
+        pub fn public_modulus_be(&self) -> Vec<u8> {
+            // Guaranteed to succeed because RSA_get0_n can only fail if
+            // the "n" parameter is not initialized, but one of the invariants
+            // on RsaKey is that it is initialized.
+            let bignum = self.key.rsa_get0_n().unwrap();
+            let num_bytes = bignum.bn_num_bytes();
+            let mut modulus = vec![0; num_bytes];
+            // Guaranteed to succeed because the size of `modulus` is
+            // [`bn_num_bytes`].
+            bignum.bn_bn2bin_padded(modulus.as_mut_slice()).unwrap();
+
+            modulus
+        }
     }
 
     impl<B: RsaKeyBits> BoringDerKey for RsaKey<B> {
@@ -214,6 +244,18 @@ impl<B: RsaKeyBits> RsaPrivKey<B> {
     #[must_use]
     pub fn generate() -> Result<RsaPrivKey<B>, Error> {
         Ok(RsaPrivKey { inner: RsaKey::generate()? })
+    }
+
+    #[must_use]
+    /// Returns the key's public exponent as a big-endian byte vector.
+    pub fn public_exponent_be(&self) -> Vec<u8> {
+        self.inner.public_exponent_be()
+    }
+
+    #[must_use]
+    /// Returns the key's public modulus as a big-endian byte vector.
+    pub fn public_modulus_be(&self) -> Vec<u8> {
+        self.inner.public_modulus_be()
     }
 }
 

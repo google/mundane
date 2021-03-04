@@ -107,15 +107,15 @@ use std::{cmp, ptr, slice};
 
 use boringssl::abort::UnwrapAbort;
 use boringssl::raw::{
-    size_t, BN_set_u64, CBB_data, CBB_init, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, ECDSA_sign,
-    ECDSA_size, ECDSA_verify, EC_GROUP_get_curve_name, EC_GROUP_new_by_curve_name,
+    size_t, BN_bn2bin_padded, BN_num_bytes, BN_set_u64, CBB_data, CBB_init, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp,
+    ECDSA_sign, ECDSA_size, ECDSA_verify, EC_GROUP_get_curve_name, EC_GROUP_new_by_curve_name,
     EC_KEY_generate_key, EC_KEY_get0_group, EC_KEY_marshal_private_key, EC_KEY_parse_private_key,
     EC_KEY_set_group, EC_curve_nid2nist, ED25519_keypair, ED25519_keypair_from_seed, ED25519_sign,
     ED25519_verify, ERR_print_errors_cb, EVP_PBE_scrypt, EVP_PKEY_assign_EC_KEY,
     EVP_PKEY_assign_RSA, EVP_PKEY_get1_EC_KEY, EVP_PKEY_get1_RSA, EVP_marshal_public_key,
     EVP_parse_public_key, HMAC_CTX_copy, HMAC_CTX_init, HMAC_Final, HMAC_Init_ex, HMAC_Update,
     HMAC_size, IntoSizeT, IntoUsize, RAND_bytes, RC4_set_key, RSA_bits, RSA_generate_key_ex,
-    RSA_marshal_private_key, RSA_parse_private_key, RSA_sign_pss_mgf1, RSA_size,
+    RSA_get0_e, RSA_get0_n, RSA_marshal_private_key, RSA_parse_private_key, RSA_sign_pss_mgf1, RSA_size,
     RSA_verify_pss_mgf1, SHA384_Init, RC4,
 };
 #[cfg(feature = "rsa-pkcs1v15")]
@@ -126,6 +126,33 @@ impl CStackWrapper<BIGNUM> {
     #[must_use]
     pub fn bn_set_u64(&mut self, value: u64) -> Result<(), BoringError> {
         unsafe { BN_set_u64(self.as_mut(), value) }
+    }
+}
+
+impl CRef<'_, BIGNUM> {
+    /// The `BN_bn2bin_padded` function.
+    ///
+    /// `bn_bn2bin_padded` can only fail if `out` is shorter than the minimum
+    /// number of bytes required by [`bn_num_bytes`].
+    ///
+    /// [`bn_num_bytes`]: CRef::bn_num_bytes
+    #[must_use]
+    pub fn bn_bn2bin_padded(&self, out: &mut [u8]) -> Result<(), BoringError> {
+        unsafe {
+            BN_bn2bin_padded(
+                out.as_mut_ptr(), out.len().into_size_t(), self.as_const())
+        }
+    }
+
+    /// The `BN_num_bytes` function.
+    ///
+    /// `bn_num_bytes` returns minimum number of bytes required to serialize
+    /// using [`bn_bn2bin_padded`].
+    ///
+    /// [`bn_bn2bin_padded`]: CRef::bn_bn2bin_padded
+    #[must_use]
+    pub fn bn_num_bytes(&self) -> usize {
+        unsafe { BN_num_bytes(self.as_const()).into_usize() }
     }
 }
 
@@ -646,6 +673,23 @@ impl CHeapWrapper<RSA> {
         // backwards-compatibility reasons, continues to take a normal
         // (non-const) pointer.
         unsafe { RSA_bits(self.as_const() as *mut _).into_usize() }
+    }
+
+    /// The `RSA_get0_e` function.
+    ///
+    /// Returns a constant reference to the key public exponent.
+    #[must_use]
+    #[allow(clippy::needless_lifetimes)] // to be more explicit
+    pub fn rsa_get0_e<'a>(&'a self) -> Result<CRef<'a, BIGNUM>, BoringError> {
+            unsafe { Ok(CRef::new(RSA_get0_e(self.as_const())?)) }
+    }
+
+    /// The `RSA_get0_n` function.
+    ///
+    /// Returns a constant reference to the key public modulus.
+    #[allow(clippy::needless_lifetimes)] // to be more explicit
+    pub fn rsa_get0_n<'a>(&'a self) -> Result<CRef<'a, BIGNUM>, BoringError> {
+            unsafe { Ok(CRef::new(RSA_get0_n(self.as_const())?)) }
     }
 
     /// The `RSA_generate_key_ex` function.

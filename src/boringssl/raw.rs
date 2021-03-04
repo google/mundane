@@ -21,7 +21,7 @@
 
 // Infallible functions and the `size_t` type.
 pub use boringssl::ffi::{
-    size_t, CBB_cleanup, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, EC_GROUP_get_curve_name,
+    size_t, BN_num_bytes, CBB_cleanup, CBB_len, CBS_init, CBS_len, CRYPTO_memcmp, EC_GROUP_get_curve_name,
     ED25519_keypair, ED25519_keypair_from_seed, ERR_print_errors_cb, HMAC_CTX_init, HMAC_size,
     RC4_set_key, RSA_bits, RC4,
 };
@@ -59,6 +59,13 @@ macro_rules! impl_hash_context {
 // they are internally so that BN_free does the right thing - freeing the object
 // itself if heap-allocated, and only freeing its internal state otherwise.
 impl_traits!(BIGNUM, CInit => BN_init, CDestruct => BN_free);
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn BN_bn2bin_padded(out: *mut u8, len: size_t, bn: *const BIGNUM)
+                        -> Result<(), BoringError> {
+    one_or_err("BN_bn2bin_padded", ffi::BN_bn2bin_padded(out, len, bn))
+}
 
 #[allow(non_snake_case)]
 #[must_use]
@@ -416,6 +423,18 @@ pub unsafe fn RSA_marshal_private_key(cbb: *mut CBB, rsa: *const RSA) -> Result<
 #[must_use]
 pub unsafe fn RSA_parse_private_key(cbs: *mut CBS) -> Result<NonNull<RSA>, BoringError> {
     ptr_or_err("RSA_parse_private_key", ffi::RSA_parse_private_key(cbs))
+}
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn RSA_get0_n(rsa: *const RSA) -> Result<NonNull<BIGNUM>, BoringError> {
+    ptr_or_err("RSA_get0_n", ffi::RSA_get0_n(rsa) as *mut BIGNUM)
+}
+
+#[allow(non_snake_case)]
+#[must_use]
+pub unsafe fn RSA_get0_e(rsa: *const RSA) -> Result<NonNull<BIGNUM>, BoringError> {
+    ptr_or_err("RSA_get0_e", ffi::RSA_get0_e(rsa) as *mut BIGNUM)
 }
 
 #[cfg(feature = "rsa-pkcs1v15")]

@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Added
+- Exposed getters for RSA public exponent and modulus
+
 ## [0.4.3] - 2020-03-26
 
 ### Added

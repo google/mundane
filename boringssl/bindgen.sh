@@ -41,8 +41,10 @@ PATCH="$3"
 # former for a consistency check of the postprocessing step which adds the
 # #[link_name...] attributes. Any change of the allowlist must be made to the
 # appropriate sub-list.
-ALLOWLIST_FUNCS="BN_free|\
+ALLOWLIST_FUNCS="BN_bn2bin_padded|\
+BN_free|\
 BN_init|\
+BN_num_bytes|\
 BN_set_u64|\
 CBS_init|\
 CBS_len|\
@@ -103,6 +105,8 @@ RC4_set_key|\
 RSA_bits|\
 RSA_free|\
 RSA_generate_key_ex|\
+RSA_get0_e|\
+RSA_get0_n|\
 RSA_marshal_private_key|\
 RSA_new|\
 RSA_parse_private_key|\
