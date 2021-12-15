@@ -204,6 +204,9 @@ TMP="$(mktemp)"
 // Only necessary for test_symbol_conflict.sh, which exposes these symbols
 // through Mundane's public interface.
 #![allow(missing_docs)]
+// TODO(https://github.com/rust-lang/rust-bindgen/issues/1651): Remove this
+// once rustc doesn't think that bindgen's tests are causing UB.
+#![cfg_attr(test, allow(deref_nullptr))]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
